@@ -1,0 +1,34 @@
+{
+  "name": "injectjs",
+  "version": "0.0.0",
+  "authors": [
+    "Nicolas Straub"
+  ],
+  "description": "lightweight, small, high level dependency injector with support for multiple object lifetimes",
+  "main": "inject.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "dependency",
+    "injector",
+    "lightweight",
+    "inject",
+    "lifetime",
+    "singleton",
+    "transient",
+    "parent"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/nstraub/injectjs",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jasmine-sinon": "~0.4.0"
+  }
+}

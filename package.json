@@ -1,0 +1,40 @@
+{
+  "name": "injectjs",
+  "version": "1.0.0",
+  "description": "lightweight, small, high level dependency injector with support for multiple object lifetimes",
+  "main": "inject.js",
+  "scripts": {
+    "test": "karma karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:nstraub/injectjs.git"
+  },
+  "keywords": [
+    "dependency",
+    "injector",
+    "lightweight",
+    "inject",
+    "lifetime",
+    "singleton",
+    "transient",
+    "parent"
+  ],
+  "author": "Nicolas Straub",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nstraub/injectjs/issues"
+  },
+  "homepage": "https://github.com/nstraub/injectjs",
+  "devDependencies": {
+    "bower": "^1.3.12",
+    "jasmine-core": "^2.2.0",
+    "karma": "^0.12.31",
+    "karma-chrome-launcher": "^0.1.7",
+    "karma-coffee-preprocessor": "^0.2.1",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-ie-launcher": "^0.1.5",
+    "karma-jasmine": "^0.3.5",
+    "karma-phantomjs-launcher": "^0.1.4"
+  }
+}
