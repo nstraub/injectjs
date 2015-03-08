@@ -1,9 +1,34 @@
 Injector = (function () {
-    var lifetimes = ['singleton', 'transient', 'instance', 'parent'];
+    var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
+        singletons = {},
+        providers = {
+            provide_transient: function (type, dependencies) {
+                function aux(args) {
+                    return type.apply(this, args);
+                }
+
+                aux.prototype = type.prototype;
+
+                return function () {
+                    return new aux(dependencies);
+                }
+            },
+            provide_singleton: function (name, type, dependencies) {
+                if (!singletons[ name]) {
+                    var singleton = providers.provide_transient(type, dependencies);
+                    singletons[name] = function () {
+                        return singleton;
+                    }
+                }
+                return singletons[name];
+            }
+        };
+
     function Injector() {
         this.types = {};
         this.providers = {};
     }
+
 
     Injector.prototype.register = function(where, name, type, lifetime) {
         var realType, dependencies;
@@ -60,12 +85,13 @@ Injector = (function () {
     };
 
     Injector.prototype.inject = function (name) {
-        var descriptor, type, dependency_names, dependency_names_length, dependencies, is_provider;
+        var descriptor, type, dependency_names, dependency_names_length, dependencies, is_provider, instantiator;
         descriptor = this.types[name];
         if (!descriptor) {
             is_provider = true;
             descriptor = this.providers[name];
         }
+
         type = descriptor.type;
         dependency_names = descriptor.dependencies;
         dependencies = [];
@@ -82,14 +108,10 @@ Injector = (function () {
                 return type.apply(this, dependencies);
             }
         } else {
-            function aux(args) {
-                return type.apply(this, args);
-            }
-
-            aux.prototype = type.prototype;
-
-            return function () {
-                return new aux(dependencies);
+            if (descriptor.lifetime === 'singleton') {
+                return providers.provide_singleton(name, type, dependencies);
+            } else {
+                return providers.provide_transient(type, dependencies);
             }
         }
     };

@@ -146,10 +146,74 @@ describe 'injector', () ->
             expect(test_provider_spy).toHaveBeenCalledWith('test')
 
     describe 'lifetime', () ->
+        test_provider_spy = null
+        test_provider_dependency_stub = null
+        beforeEach () ->
+            test_provider_spy = sinon.spy()
+            test_provider_dependency_stub = sinon.stub()
+            test_provider_dependency_stub.returns('test')
+            Injector.types =
+                test:
+                    name: 'test'
+                    dependencies: ['transient_test']
+                    type: class test_type
+                        constructor: (@transient_test) ->
+                    lifetime: 'transient'
+                singleton_test:
+                    name: 'singleton_test'
+                    dependencies: null
+                    type: class singleton_test_type
+                    lifetime: 'singleton'
+                transient_test:
+                    name: 'transient_test'
+                    dependencies: null
+                    type: class transient_test_type
+                    lifetime: 'transient'
+                instance_test:
+                    name: 'instance_test'
+                    dependencies: null
+                    type: class instance_test_type
+                    lifetime: 'instance'
+                parent_test:
+                    name: 'parent_test'
+                    dependencies: null
+                    type: class parent_test_type
+                    lifetime: 'parent'
+                test_dependency:
+                    name: 'test_dependency'
+                    dependencies: null
+                    type: class test_dependency
+                    lifetime: 'transient'
+            Injector.providers =
+                test_provider:
+                    name: 'test_provider'
+                    dependencies: null
+                    type: test_provider_spy
+                    lifetime: 'transient'
+                test_provider_dependency:
+                    name: 'test_provider_dependency'
+                    dependencies: null
+                    type: test_provider_dependency_stub
+                    lifetime: 'transient'
         describe 'singleton', () ->
-            it 'creates one instance of the type per injector'
+            it 'creates one instance of the type per injector', () ->
+                first_singleton_instance = Injector.instantiate('singleton_test')
+                second_singleton_instance = Injector.instantiate('singleton_test')
+
+                expect(first_singleton_instance).toBe second_singleton_instance
         describe 'transient', () ->
-            it 'creates one instance of the type per dependency requirement'
+            it 'creates one instance of the type per dependency requirement', () ->
+                first_transient_instance = Injector.instantiate 'transient_test'
+                second_transient_instance = Injector.instantiate 'transient_test'
+
+                expect(first_transient_instance).not.toBe second_transient_instance
+
+            it 'creates one instance of the type per dependency requirement when they are part of a parent dependency', () ->
+                first_test_instance = Injector.instantiate 'test'
+                second_test_instance = Injector.instantiate 'test'
+
+                expect(first_test_instance.transient_test).not.toBe second_test_instance.transient_test
+
         describe 'instance', () ->
             it 'creates one instance of the type per invocation of the inject function'
         describe 'parent', () ->

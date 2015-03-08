@@ -15,10 +15,10 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'bower_components/sinonjs/sinon.js',
-            'bower_components/jasmine-sinon/lib/jasmine-sinon.js',
             'inject.js',
-            'inject.js.spec.coffee'
+            'inject.js.spec.coffee',
+            'bower_components/sinonjs/sinon.js',
+            'bower_components/jasmine-sinon/lib/jasmine-sinon.js'
         ],
 
 
