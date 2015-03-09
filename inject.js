@@ -1,4 +1,4 @@
-Injector = (function () {
+injector = (function () {
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
         providers = {
