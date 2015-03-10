@@ -4,7 +4,7 @@ a lightweight, small, high level dependency injector with support for object lif
 
 This software is still a proof of concept, and is by no means usable in production, reliable, or properly documented
 --------------------------------------------------------------------------------------------------------------------
-with that said, I expect to have a fully functional, fully tested, fully decoupled and fully documented version in the next couple of weeks
+with that said, I expect to have a fully functional, fully tested, fully decoupled and fully documented version in the next couple of weeks. Also, everything is still a bit messy, but I expect to tidy it up in the next couple of weeks as well.
 
 # API reference
 ## injector.registerType
