@@ -15,6 +15,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
+            'node_modules/lodash/index.js',
             'inject.js',
             'inject.js.spec.coffee',
             'bower_components/sinonjs/sinon.js',

@@ -209,8 +209,9 @@ describe 'injector', () ->
                 expect(first_transient_instance).not.toBe second_transient_instance
 
             it 'creates one instance of the type per dependency requirement when they are part of a parent dependency', () ->
-                first_test_instance = injector.instantiate 'test'
-                second_test_instance = injector.instantiate 'test'
+                instantiator = injector.inject 'test'
+                first_test_instance = instantiator()
+                second_test_instance = instantiator()
 
                 expect(first_test_instance.transient_test).not.toBe second_test_instance.transient_test
 

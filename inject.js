@@ -2,7 +2,7 @@ injector = (function () {
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
         providers = {
-            provide_transient: function (type, dependencies) {
+            provide_transient: function (type, dependency_providers) {
                 function aux(args) {
                     return type.apply(this, args);
                 }
@@ -10,12 +10,15 @@ injector = (function () {
                 aux.prototype = type.prototype;
 
                 return function () {
+                    var dependencies = _.map(dependency_providers, function (provider) {
+                        return provider();
+                    });
                     return new aux(dependencies);
                 }
             },
-            provide_singleton: function (name, type, dependencies) {
+            provide_singleton: function (name, type, dependency_providers) {
                 if (!singletons[ name]) {
-                    var singleton = providers.provide_transient(type, dependencies);
+                    var singleton = providers.provide_transient(type, dependency_providers);
                     singletons[name] = function () {
                         return singleton;
                     }
@@ -85,7 +88,7 @@ injector = (function () {
     };
 
     Injector.prototype.inject = function (name) {
-        var descriptor, type, dependency_names, dependency_names_length, dependencies, is_provider, instantiator;
+        var descriptor, type, dependency_names, dependency_names_length, dependency_providers, is_provider, instantiator;
         descriptor = this.types[name];
         if (!descriptor) {
             is_provider = true;
@@ -94,24 +97,28 @@ injector = (function () {
 
         type = descriptor.type;
         dependency_names = descriptor.dependencies;
-        dependencies = [];
+        dependency_providers = [];
 
         if (dependency_names) {
             dependency_names_length = dependency_names.length;
             for (var i = 0; i < dependency_names_length; i++) {
-                dependencies.push(this.instantiate(dependency_names[i]));
+                dependency_providers.push(this.inject(dependency_names[i]));
             }
         }
 
         if (is_provider) {
             return function () {
+                var dependencies = _.map(dependency_providers, function (provider) {
+                    return provider();
+                });
+
                 return type.apply(this, dependencies);
             }
         } else {
             if (descriptor.lifetime === 'singleton') {
-                return providers.provide_singleton(name, type, dependencies);
+                return providers.provide_singleton(name, type, dependency_providers);
             } else {
-                return providers.provide_transient(type, dependencies);
+                return providers.provide_transient(type, dependency_providers);
             }
         }
     };
