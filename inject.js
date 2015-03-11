@@ -30,6 +30,7 @@ injector = (function () {
     function Injector() {
         this.types = {};
         this.providers = {};
+        this.fakes = {};
     }
 
 
@@ -37,7 +38,7 @@ injector = (function () {
         var realType, dependencies;
         var destination = this[where];
         if (typeof destination === 'undefined') {
-            throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers, and main'
+            throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers, fakes and main'
         }
 
         if (typeof name !== 'string' || name === '') {
@@ -90,7 +91,11 @@ injector = (function () {
     Injector.prototype.inject = function (name) {
         var descriptor, type, dependency_names, dependency_names_length, dependency_providers, is_provider, instantiator;
         if (typeof name === 'string') {
-            descriptor = this.types[name];
+            descriptor = this.fakes[name];
+            if (!descriptor) {
+                descriptor = this.types[name];
+            }
+
             if (!descriptor) {
                 is_provider = true;
                 descriptor = this.providers[name];

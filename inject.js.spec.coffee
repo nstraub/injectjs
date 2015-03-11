@@ -37,7 +37,14 @@ describe 'injector', () ->
                 expect(() -> injector.register('types', 'no type', ['test dependency'])).toThrow 'no type was passed'
 
             it 'throws an error when an invalid where is passed', () ->
-                expect(() -> injector.register('invalid where', 'test type', test_type)).toThrow 'invalid destination "invalid where" provided. Valid destinations are types, providers, and main'
+                expect(() -> injector.register('invalid where', 'test type', test_type)).toThrow 'invalid destination "invalid where" provided. Valid destinations are types, providers, fakes and main'
+
+            it 'registers a provided fake', () ->
+                injector.register('fakes', 'test type', test_type)
+                delete test_result.lifetime
+
+                expect(injector.fakes['test type']).toEqual test_result
+
 
         describe 'registerType', () ->
             it 'registers a provided type', () ->
@@ -152,6 +159,18 @@ describe 'injector', () ->
             adhoc_function_provider = injector.inject descriptor
 
             expect(adhoc_function_provider() instanceof injector.types.test_dependency.type).toBeTruthy()
+
+        it 'prioritizes fakes over types and providers', () ->
+            injector.fakes =
+                test_provider:
+                    name: 'test_provider'
+                    dependencies: null
+                    type: () ->
+                    lifetime: 'transient'
+
+            fake = injector.inject('test_provider')()
+
+            expect(test_provider_spy).not.toHaveBeenCalled()
 
     describe 'lifetime', () ->
         test_provider_spy = null
