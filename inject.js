@@ -80,6 +80,15 @@ injector = (function () {
         this.register('types', name, type, lifetime);
     };
 
+    Injector.prototype.getType = function (name) {
+        var type = this.fakes[name] || this.types[name];
+
+        if (type) {
+            return type.type;
+        }
+        return null
+    };
+
     Injector.prototype.registerProvider = function (name, provider) {
         this.register('providers', name, provider);
     };
