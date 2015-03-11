@@ -89,10 +89,25 @@ injector = (function () {
 
     Injector.prototype.inject = function (name) {
         var descriptor, type, dependency_names, dependency_names_length, dependency_providers, is_provider, instantiator;
-        descriptor = this.types[name];
-        if (!descriptor) {
+        if (typeof name === 'string') {
+            descriptor = this.types[name];
+            if (!descriptor) {
+                is_provider = true;
+                descriptor = this.providers[name];
+            }
+        } else {
+            if (typeof name === 'function') {
+                descriptor = {
+                    type: name,
+                    dependencies: null
+                }
+            } else {
+                descriptor = {
+                    type: name.pop(),
+                    dependencies: name
+                }
+            }
             is_provider = true;
-            descriptor = this.providers[name];
         }
 
         type = descriptor.type;

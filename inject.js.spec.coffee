@@ -145,6 +145,14 @@ describe 'injector', () ->
             expect(test_provider_dependency_stub).toHaveBeenCalledOnce()
             expect(test_provider_spy).toHaveBeenCalledWith('test')
 
+        it 'injects dependencies into a function descriptor', () ->
+            adhoc_function = (dependency) -> return dependency
+            descriptor = ['test_dependency', adhoc_function]
+
+            adhoc_function_provider = injector.inject descriptor
+
+            expect(adhoc_function_provider() instanceof injector.types.test_dependency.type).toBeTruthy()
+
     describe 'lifetime', () ->
         test_provider_spy = null
         test_provider_dependency_stub = null
