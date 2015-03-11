@@ -115,6 +115,10 @@ injector = (function () {
             is_provider = true;
         }
 
+        if (!descriptor) {
+            throw 'There is no dependency named "' + name + '" registered.';
+        }
+
         type = descriptor.type;
         dependency_names = descriptor.dependencies;
         dependency_providers = [];

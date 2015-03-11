@@ -172,6 +172,10 @@ describe 'injector', () ->
 
             expect(test_provider_spy).not.toHaveBeenCalled()
 
+        it 'throws an error when provided dependency name isn`t registered', () ->
+            expect(() -> injector.inject('nonexistent')).toThrow 'There is no dependency named "nonexistent" registered.'
+
+
     describe 'lifetime', () ->
         test_provider_spy = null
         test_provider_dependency_stub = null
