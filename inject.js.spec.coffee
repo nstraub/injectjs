@@ -40,8 +40,7 @@ describe 'injector', () ->
                 expect(() -> injector.register('invalid where', 'test type', test_type)).toThrow 'invalid destination "invalid where" provided. Valid destinations are types, providers, fakes and main'
 
             it 'registers a provided fake', () ->
-                injector.register('fakes', 'test type', test_type)
-                delete test_result.lifetime
+                injector.register('fakes', 'test type', test_type, 'transient')
 
                 expect(injector.fakes['test type']).toEqual test_result
 
@@ -75,6 +74,22 @@ describe 'injector', () ->
                 test_result.name = 'main';
                 delete test_result.lifetime;
                 expect(injector.providers['main']).toEqual test_result
+
+        describe 'registerFake', () ->
+            it 'registers a provided fake', () ->
+                injector.registerFake 'test type', test_type, 'singleton'
+                test_result.lifetime = 'singleton'
+                expect(injector.fakes['test type']).toEqual test_result
+
+            it 'defaults to transient lifetime', () ->
+                injector.registerFake 'test type', ['test_dependency', test_type]
+                test_result.dependencies = ['test_dependency']
+                expect(injector.fakes['test type']).toEqual test_result
+
+            it 'throws an error when invalid lifetime is passed', () ->
+
+                expect(() -> injector.registerFake('test type', test_type , 'invalid lifetime')).toThrow 'invalid lifetime "invalid lifetime" provided. Valid lifetimes are singleton, transient, instance and parent'
+
 
     describe 'instantiate', () ->
         beforeEach () ->
@@ -124,12 +139,10 @@ describe 'injector', () ->
                     name: 'test_provider'
                     dependencies: null
                     type: test_provider_spy
-                    lifetime: 'transient'
                 test_provider_dependency:
                     name: 'test_provider_dependency'
                     dependencies: null
                     type: test_provider_dependency_stub
-                    lifetime: 'transient'
 
         it 'creates a function that returns an instance of the given type', () ->
             test = injector.inject 'test'

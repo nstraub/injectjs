@@ -88,6 +88,17 @@ injector = (function () {
         this.register('providers', 'main', main);
     };
 
+    Injector.prototype.registerFake = function (name, type, lifetime) {
+        lifetime = lifetime || 'transient';
+
+        if (lifetimes.indexOf(lifetime) === -1) {
+            throw 'invalid lifetime "' + lifetime + '" provided. Valid lifetimes are singleton, transient, instance and parent'
+        }
+
+        this.register('fakes', name, type, lifetime);
+    };
+
+
     Injector.prototype.inject = function (name) {
         var descriptor, type, dependency_names, dependency_names_length, dependency_providers, is_provider, instantiator;
         if (typeof name === 'string') {
