@@ -303,8 +303,8 @@ describe 'injector', () ->
 
                 expect(first_test_instance.transient_test).not.toBe second_test_instance.transient_test
 
-        describe 'instance', () ->
-            it 'creates one instance of the type per invocation of the inject function'
+        describe 'root', () ->
+            it 'creates one instance of the type per root invocation of the inject function'
         describe 'parent', () ->
             it 'creates one instance of the type for a dependency and all of its dependencies'
             it 'creates a different instance of the type for a sibling dependency'
