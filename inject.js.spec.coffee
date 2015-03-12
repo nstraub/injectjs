@@ -1,4 +1,17 @@
 describe 'injector', () ->
+    beforeAll ->
+        jasmine.addMatchers toBeInstanceOf: ->
+            { compare: (actual, expected) ->
+                result = undefined
+                result =
+                    pass: actual instanceof expected
+                if result.pass
+                    result.message = 'Expected ' + actual + ' not to be an instance of ' + expected
+                else
+                    result.message = 'Expected ' + actual + ' to be an instance of ' + expected
+                return result
+            }
+        return
     describe 'register', () ->
         test_type = null
         test_result = null
@@ -274,6 +287,7 @@ describe 'injector', () ->
                 first_singleton_instance = injector.instantiate('singleton_test')
                 second_singleton_instance = injector.instantiate('singleton_test')
 
+                expect(first_singleton_instance).toBeInstanceOf injector.getType('singleton_test')
                 expect(first_singleton_instance).toBe second_singleton_instance
         describe 'transient', () ->
             it 'creates one instance of the type per dependency requirement', () ->

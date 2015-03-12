@@ -18,7 +18,7 @@ injector = (function () {
             },
             provide_singleton: function (name, type, dependency_providers) {
                 if (!singletons[ name]) {
-                    var singleton = providers.provide_transient(type, dependency_providers);
+                    var singleton = providers.provide_transient(type, dependency_providers)();
                     singletons[name] = function () {
                         return singleton;
                     }
