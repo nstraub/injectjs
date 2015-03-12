@@ -1,3 +1,4 @@
+'use strict';
 injector = (function () {
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
