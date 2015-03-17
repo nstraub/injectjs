@@ -179,5 +179,12 @@ var injector = (function () {
         }
     };
 
+    Injector.prototype.run = function () {
+        if (!this.providers.main) {
+            throw 'No main method registered. Please register one by running injector.registerMain() before running the app';
+        }
+        return injector.instantiate('main');
+    };
+
     return new Injector();
 })();
