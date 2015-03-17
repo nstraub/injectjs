@@ -1,5 +1,5 @@
 'use strict';
-injector = (function () {
+var injector = (function () {
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
         providers = {
@@ -170,6 +170,13 @@ injector = (function () {
 
     Injector.prototype.instantiate = function (name) {
         return this.inject(name)();
+    };
+
+    Injector.prototype.harness = function (func) {
+        var _this = this;
+        return function () {
+            return _this.inject(func)();
+        }
     };
 
     return new Injector();

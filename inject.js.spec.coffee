@@ -231,6 +231,24 @@ describe 'injector', () ->
         it 'throws an error when provided dependency name isn`t registered', () ->
             expect(() -> injector.inject('nonexistent')).toThrow 'There is no dependency named "nonexistent" registered.'
 
+    describe 'harness', () ->
+        beforeEach () ->
+            sinon.spy injector, 'inject'
+
+        afterEach () ->
+            injector.inject.restore
+
+        it 'delays injection until passed funciton is instantiated', () ->
+            test_method = () -> 'test'
+
+            harness = injector.harness test_method
+
+            expect(injector.inject).not.toHaveBeenCalled()
+
+            result = harness()
+
+            expect(injector.inject).toHaveBeenCalledWith(test_method)
+            expect(result).toBe 'test'
 
     describe 'lifetime', () ->
         test_provider_spy = null
