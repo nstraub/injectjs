@@ -28,3 +28,30 @@ registration_register_spec = () ->
         injector.register('fakes', 'test type', @test_type, 'transient')
 
         expect(injector.fakes['test type']).toEqual @test_result
+
+    describe 'without a dependency array', () ->
+        it 'registers dependencies for a type with one dependency', () ->
+            @test_type = (test_dependency) ->
+            @test_result.type = @test_type
+            @test_result.dependencies = ['test_dependency']
+            @test_result.lifetime = 'singleton'
+
+            injector.register 'types', 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result
+
+        it 'registers dependencies for a type with two dependencies', () ->
+            @test_type = (test_dependency, test_dependency_2) ->
+            @test_result.type = @test_type
+            @test_result.dependencies = ['test_dependency', 'test_dependency_2']
+            @test_result.lifetime = 'singleton'
+
+            injector.register 'types', 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result
+
+        it 'registers no dependencies for a type with a nested function with parameters', () ->
+            @test_type = () -> (nested_parameter) ->
+            @test_result.type = @test_type
+            @test_result.lifetime = 'singleton'
+
+            injector.register 'types', 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result

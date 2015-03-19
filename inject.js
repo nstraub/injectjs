@@ -2,6 +2,7 @@
 var injector = (function () {
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
+        dependency_pattern = /^function ?\(((?:\w+|(?:, ?))+)\)/,
         providers = {
             provide_transient: function (type, dependency_providers) {
                 function aux(args) {
@@ -49,7 +50,15 @@ var injector = (function () {
         if (!type) {
             throw 'no type was passed';
         } else if (typeof type === 'function') {
-            dependencies = null;
+            var serialized_type = type.toString();
+            var serialized_dependencies;
+
+            if (serialized_dependencies = dependency_pattern.exec(serialized_type)) {
+                dependencies = serialized_dependencies[1].split(/, ?/);
+            } else {
+                dependencies = null;
+            }
+
             realType = type;
         } else {
             realType = type.pop();
