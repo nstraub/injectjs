@@ -156,53 +156,63 @@ Easy, right? but not of much value... let's try to fix that --- within the bound
 
     var people = (function () {
         function Mouth() {
-            this.say = function (what) {
-                alert(what);
-            }
+    
         }
-        
+    
+        Mouth.prototype.say = function (what) {
+            alert(what);
+        };
+    
         function Foo(mouth, bar) {
-            this.greet = function () {
-                mouth.say('hello sir');
-            }
-            
-            this.startParty = function () {
-                this.greet = bar.greet;
-            }
-            
-            this.endParty = function () {
-                this.greet = Foo.prototype.greet.bind(this);
-            }
+            this.mouth = mouth;
+            this.bar = bar;
         }
-        
+    
+        Foo.prototype.greet = function () {
+            this.mouth.say('hello sir');
+        };
+    
+        Foo.prototype.startParty = function () {
+            this.greet = this.bar.greet;
+        };
+    
+        Foo.prototype.endParty = function () {
+            this.greet = Foo.prototype.greet.bind(this);
+        };
+    
         function Bar(mouth) {
-            this.greet = function () {
-                mouth.say('hello mate!');
-            }
+            this.mouth = mouth;
         }
-            
-        var bar = new Bar(new mouth);
-        var foo = new Foo(new mouth);
-        
+    
+        Bar.prototype.greet = function () {
+            this.mouth.say('hello mate!');
+        };
+    
+        var bar = new Bar(new Mouth());
+        var foo = new Foo(new Mouth(), bar);
+    
         return [foo, bar];
     }());
-    
+
     $(function () {
         people[0].greet(); //probably foo, but not enforceable (people[0] = null is quite easy to code, right?)
         people[1].greet(); //again, probably bar
     });
+
     
 Then on a separate file:
 
-    $('#start-party').on('click', function () {
-        var foo = people[0]; // at this point anything could've happened
-        var bar = people[1];
-        
-        foo.startParty();
-        foo.greet();
-        bar.greet();
+    $(function () {
+        $('#start-party').on('click', function () {
+            var foo = people[0]; // at this point anything could've happened
+            var bar = people[1];
+    
+            foo.startParty();
+            foo.greet();
+            bar.greet();
+        });
     });
-        
+
 Let's ignore the Liskov Substitution Principle violations in `Foo` for a while... what's wrong with this code?
 
 1. It's tightly coupled (`Foo`, `Bar` and `Mouth` must live together if we don't want them to be global, and since `Foo` and `Bar` must be singletons, there's no way we can make them global anyway.
@@ -214,58 +224,81 @@ Now let's do the same with InjectJS:
 
 First file (mouth.js):
 
-    injector.registerType('mouth', function () {
-        this.say = function (what) {
+    (function () {
+        function Mouth () {}
+    
+        Mouth.prototype.say = function (what) {
             alert(what);
-        }
-    });
+        };
+    
+        injector.registerType('mouth', Mouth);
+    }());
+
 
 Second file (foo.js):
 
     (function () {
-        injector.registerType('foo', function (mouth) {
-            this.greet = function () {
-                mouth.greet('sir');
-            }
-                        
-            this.startParty = function () {
-                this.greet = bar.greet;
-            }
-            
-            this.endParty = function () {
-                this.greet = Foo.prototype.greet.bind(this);
-            }
-        }, 'singleton');
+    
+        function Foo(mouth, bar) {
+            this.mouth = mouth;
+            this.bar = bar;
+        }
+    
+        Foo.prototype.greet = function () {
+            this.mouth.say('hello sir');
+        };
+    
+        Foo.prototype.startParty = function () {
+            this.greet = this.bar.greet;
+        };
+    
+        Foo.prototype.endParty = function () {
+            this.greet = Foo.prototype.greet.bind(this);
+        };
+    
+        injector.registerType('foo', Foo, 'singleton');
     }());
 
 Third file (bar.js):
 
-	injector.registerType('bar', function (mouth) {
-        this.greet = function () {
-            mouth.greet('mate!');
+    (function () {
+        function Bar(mouth) {
+            this.mouth = mouth;
         }
-    }, 'singleton');
+    
+        Bar.prototype.greet = function () {
+            this.mouth.say('hello mate!');
+        };
+    
+        injector.registerType('bar', Bar, 'singleton');
+    }());
+    
 
 Fourth file (main.js):
+
+    (function () {
+        injector.registerMain(function(foo, bar) {
+            foo.greet(); // alerts "Hello sir"
+            bar.greet(); // alerts "Hello mate!"
+        });
     
-    injector.registerMain(function(foo, bar) {
-        foo.greet(); // alerts "Hello sir"
-        bar.greet(); // alerts "Hello mate!"
-    });
-    
-    $(function () {
-        injector.run();
-    });
-    
+        $(function () {
+            injector.run();
+        });
+    }());
+
+
 Fifth file (party.js):
 
-    $('#party').on('start', injector.inject(function (foo, bar) {
-        foo.startParty();
-        foo.greet();
-        bar.greet();
-        foo.endParty();
-    }));
-    
+    $(function () {
+        $('#start-party').click(injector.inject(function (foo, bar) {
+            foo.startParty();
+            foo.greet();
+            bar.greet();
+            foo.endParty();
+        }));
+    });
+
 Now, we have five decoupled units of logic, that work fine together without really even knowing about each other, because it's now the injector's responsibility to manage availability of the resources. So let's see:
 
 1. It's loosely coupled.
