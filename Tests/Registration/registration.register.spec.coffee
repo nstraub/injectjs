@@ -55,3 +55,12 @@ registration_register_spec = () ->
 
             injector.register 'types', 'test type', @test_type, 'singleton'
             expect(injector.types['test type']).toEqual @test_result
+
+        it 'allows types to be named functions', () ->
+            @test_type = `function Test(test_dependency, test_dependency_2) {}`
+            @test_result.type = @test_type
+            @test_result.dependencies = ['test_dependency', 'test_dependency_2']
+            @test_result.lifetime = 'singleton'
+
+            injector.register 'types', 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result

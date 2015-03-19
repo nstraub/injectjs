@@ -2,7 +2,7 @@
 var injector = (function () {
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
-        dependency_pattern = /^function ?\(((?:\w+|(?:, ?))+)\)/,
+        dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/,
         providers = {
             provide_transient: function (type, dependency_providers) {
                 function aux(args) {
