@@ -42,6 +42,8 @@ RequireJS is a wonderful modularization framework, but it is not a dependency in
 
 simply download inject.js from the source tree and include it into your html page(s)
 
+> **Note:** InjectJS depends on Lodash ([https://lodash.com/](https://lodash.com/)). You can probably use it with underscore as well, but the framework is developed and test using Lodash, so there are no assurances.
+
 ## Tests
 
 InjectJS comes with a test suite that fully unit-tests the code. to run it, do the following:
