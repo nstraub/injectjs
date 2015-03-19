@@ -36,6 +36,17 @@ var injector = (function () {
     }
 
 
+    function get_dependencies(type) {
+        var serialized_type = type.toString();
+        var serialized_dependencies;
+
+        if (serialized_dependencies = dependency_pattern.exec(serialized_type)) {
+            return serialized_dependencies[1].split(/, ?/);
+        } else {
+            return null;
+        }
+    }
+
     Injector.prototype.register = function(where, name, type, lifetime) {
         var realType, dependencies;
         var destination = this[where];
@@ -50,15 +61,7 @@ var injector = (function () {
         if (!type) {
             throw 'no type was passed';
         } else if (typeof type === 'function') {
-            var serialized_type = type.toString();
-            var serialized_dependencies;
-
-            if (serialized_dependencies = dependency_pattern.exec(serialized_type)) {
-                dependencies = serialized_dependencies[1].split(/, ?/);
-            } else {
-                dependencies = null;
-            }
-
+            dependencies = get_dependencies(type);
             realType = type;
         } else {
             realType = type.pop();
@@ -134,7 +137,7 @@ var injector = (function () {
             if (typeof name === 'function') {
                 descriptor = {
                     type: name,
-                    dependencies: null
+                    dependencies: get_dependencies(name)
                 }
             } else {
                 descriptor = {
