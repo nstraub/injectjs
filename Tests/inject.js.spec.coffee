@@ -38,7 +38,7 @@ describe 'injector', () ->
     describe 'getType', utility_get_type_spec
 
     describe 'injection', () ->
-        describe 'instantiate', injection_instantiate_spec
+        describe 'get', injection_get_spec
 
 
         describe 'inject', injection_inject_spec

@@ -1,5 +1,11 @@
 'use strict';
 var injector = (function () {
+    function map_dependencies(dependency_providers) {
+        return _.map(dependency_providers, function (provider) {
+            return provider();
+        });
+    }
+
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
         singletons = {},
         dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/,
@@ -12,9 +18,7 @@ var injector = (function () {
                 aux.prototype = type.prototype;
 
                 return function () {
-                    var dependencies = _.map(dependency_providers, function (provider) {
-                        return provider();
-                    });
+                    var dependencies = map_dependencies(dependency_providers);
                     return new aux(dependencies);
                 }
             },
@@ -26,7 +30,15 @@ var injector = (function () {
                     }
                 }
                 return singletons[name];
+            },
+            build_provider: function (name, descriptor, dependency_providers) {
+                if (descriptor.lifetime === 'singleton') {
+                    return providers.provide_singleton(name, descriptor.type, dependency_providers);
+                } else {
+                    return providers.provide_transient(descriptor.type, dependency_providers);
+                }
             }
+
         };
 
     function Injector() {
@@ -36,7 +48,7 @@ var injector = (function () {
     }
 
 
-    function get_dependencies(type) {
+    function get_dependency_names(type) {
         var serialized_type = type.toString();
         var serialized_dependencies;
 
@@ -61,7 +73,7 @@ var injector = (function () {
         if (!type) {
             throw 'no type was passed';
         } else if (typeof type === 'function') {
-            dependencies = get_dependencies(type);
+            dependencies = get_dependency_names(type);
             realType = type;
         } else {
             realType = type.pop();
@@ -121,30 +133,29 @@ var injector = (function () {
     };
 
 
-    Injector.prototype.inject = function (name) {
-        var descriptor, type, dependency_names, dependency_names_length, dependency_providers, is_provider, instantiator;
-        if (typeof name === 'string') {
-            descriptor = this.fakes[name];
-            if (!descriptor) {
-                descriptor = this.types[name];
-            }
-
-            if (!descriptor) {
-                is_provider = true;
-                descriptor = this.providers[name];
+    // for when inject is called with an anonymous function
+    function build_anonymous_descriptor(name) {
+        if (typeof name === 'function') {
+            return {
+                type: name,
+                dependencies: get_dependency_names(name)
             }
         } else {
-            if (typeof name === 'function') {
-                descriptor = {
-                    type: name,
-                    dependencies: get_dependencies(name)
-                }
-            } else {
-                descriptor = {
-                    type: name.pop(),
-                    dependencies: name
-                }
+            return {
+                type: name.pop(),
+                dependencies: name
             }
+        }
+    }
+
+    Injector.prototype.inject = function (name) {
+        var descriptor, type, dependency_providers = [], is_provider;
+        if (typeof name === 'string') {
+            descriptor = this.fakes[name] || this.types[name] || this.providers[name];
+            is_provider = !!this.providers[name];
+
+        } else {
+            descriptor = build_anonymous_descriptor(name);
             is_provider = true;
         }
 
@@ -153,34 +164,22 @@ var injector = (function () {
         }
 
         type = descriptor.type;
-        dependency_names = descriptor.dependencies;
-        dependency_providers = [];
 
-        if (dependency_names) {
-            dependency_names_length = dependency_names.length;
-            for (var i = 0; i < dependency_names_length; i++) {
-                dependency_providers.push(this.inject(dependency_names[i]));
-            }
-        }
+        dependency_providers = _.map(descriptor.dependencies, function (name) {
+            return this.inject(name);
+        }, this);
 
         if (is_provider) {
             return function () {
-                var dependencies = _.map(dependency_providers, function (provider) {
-                    return provider();
-                });
-
+                var dependencies = map_dependencies(dependency_providers);
                 return type.apply(this, dependencies);
             }
         } else {
-            if (descriptor.lifetime === 'singleton') {
-                return providers.provide_singleton(name, type, dependency_providers);
-            } else {
-                return providers.provide_transient(type, dependency_providers);
-            }
+            return providers.build_provider(name, descriptor, dependency_providers)
         }
     };
 
-    Injector.prototype.instantiate = function (name) {
+    Injector.prototype.get = function (name) {
         return this.inject(name)();
     };
 
@@ -195,7 +194,7 @@ var injector = (function () {
         if (!this.providers.main) {
             throw 'No main method registered. Please register one by running injector.registerMain() before running the app';
         }
-        return injector.instantiate('main');
+        return injector.get('main');
     };
 
     return new Injector();

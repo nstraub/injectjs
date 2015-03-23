@@ -18,7 +18,7 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 		- [injector.registerProvider](#registration-provider)
 		- [injector.registerMain](#registration-main)
 	2. [Injection Methods](#injection)
-		- [injector.instantiate](#injection-instantiate)
+		- [injector.get](#injection-get)
 		- [injector.inject](#injection-inject)
 		- [injector.run](#injection-run)
 	3. [Utility Methods](#utility)
@@ -56,7 +56,7 @@ InjectJS comes with a test suite that fully unit-tests the code. to run it, do t
 # <a name="use"></a>Usage 
 
 The main idea behind InjectJS is getting rid of the new keyword in your code. This may seem a controversial statement and impossible to achieve, but it's quite possible and will make your code leaner and more maintainable, or at the very least, less frustrating.
-Let's start with a Mouth World app. Normally you would make a new function called mouth, instantiate somewhere it and then call it:
+Let's start with a Hello World app. Normally you would make a new function called mouth, instantiate somewhere it and then call it:
  
     function Mouth() {
         this.say = function (what) {
@@ -413,25 +413,25 @@ Allows you to register the provider that gets invoked when `injector.run()` is c
 
 ## <a name="injection"></a>Injection Methods
 
-### <a name="injection-instantiate"></a>injector.instantiate
+### <a name="injection-get"></a>injector.get
 
-instantiates a registered type. Not recommended for use other than to replace the new keyword while refactoring legacy code
+gets a registered type or provider. Not recommended for use other than to replace the new keyword while refactoring legacy code
 
 **signatures**
-*instantiate(string|array|function name) : object*
+*get(string|array|function name) : object*
 
 **parameters**
 - name(string|array|function): mandatory. 
-	- If string, the name of the type you want to instantiate. 
-	- If function, the function you wish to instantiate. its dependencies are inferred from its parameter names.
-	- If array, an array of dependencies followed by the function you wish to instantiate. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
+	- If string, the name of the type you want to get. 
+	- If function, the function you wish to get. its dependencies are inferred from its parameter names.
+	- If array, an array of dependencies followed by the function you wish to get. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
   
 > **Note**: type MUST be an array if you plan to minify your code 
 
 
 **example**
 
-    var logger = injector.instantiate('message-logger');
+    var logger = injector.get('message-logger');
     logger.print(); // logs 'hello, world' to the console
     
 ### <a name="injection-inject"></a>injector.inject
@@ -443,9 +443,9 @@ injects all dependencies into the requested type and returns a provider for said
 
 **parameters**
 - name(string|array|function): mandatory. 
-	- If string, the name of the type you want to instantiate. 
-	- If function, the function you wish to instantiate. its dependencies are inferred from its parameter names.
-	- If array, an array of dependencies followed by the function you wish to instantiate. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
+	- If string, the name of the type you want to inject. 
+	- If function, the function you wish to inject. its dependencies are inferred from its parameter names.
+	- If array, an array of dependencies followed by the function you wish to inject. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
   
 > **Note**: type MUST be an array if you plan to minify your code 
 
