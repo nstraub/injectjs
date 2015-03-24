@@ -45,6 +45,7 @@ var injector = (function () {
         this.types = {};
         this.providers = {};
         this.fakes = {};
+        this.cache = {};
     }
 
 
@@ -69,6 +70,8 @@ var injector = (function () {
         if (typeof name !== 'string' || name === '') {
             throw 'Type must have a name';
         }
+
+        delete this.cache[name];
 
         if (!type) {
             throw 'no type was passed';
@@ -149,8 +152,11 @@ var injector = (function () {
     }
 
     Injector.prototype.inject = function (name) {
-        var descriptor, type, dependency_providers = [], is_provider;
+        var descriptor, type, dependency_providers, is_provider, provider;
         if (typeof name === 'string') {
+            if (this.cache[name]) {
+                return this.cache[name];
+            }
             descriptor = this.fakes[name] || this.types[name] || this.providers[name];
             is_provider = !!this.providers[name];
 
@@ -170,12 +176,20 @@ var injector = (function () {
         }, this);
 
         if (is_provider) {
-            return function () {
-                var dependencies = map_dependencies(dependency_providers);
-                return type.apply(this, dependencies);
+            provider = (function (dependency_providers) {
+                return function () {
+                    var dependencies = map_dependencies(dependency_providers);
+                    return type.apply(this, dependencies);
+                }
+            }(dependency_providers));
+
+            if (typeof name === 'string') {
+                this.cache[name] = provider;
             }
+
+            return provider;
         } else {
-            return providers.build_provider(name, descriptor, dependency_providers)
+            return this.cache[name] = providers.build_provider(name, descriptor, dependency_providers)
         }
     };
 

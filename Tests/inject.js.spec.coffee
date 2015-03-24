@@ -12,6 +12,13 @@ describe 'injector', () ->
                 return result
             }
         return
+
+    afterEach () ->
+        injector.types = {}
+        injector.providers = {}
+        injector.fakes = {}
+        injector.cache = {}
+
     describe 'registration', () ->
         beforeEach () ->
             @test_type = () ->
@@ -39,7 +46,6 @@ describe 'injector', () ->
 
     describe 'injection', () ->
         describe 'get', injection_get_spec
-
 
         describe 'inject', injection_inject_spec
 
@@ -110,3 +116,8 @@ describe 'injector', () ->
         describe 'parent', () ->
             it 'creates one instance of the type for a dependency and all of its dependencies'
             it 'creates a different instance of the type for a sibling dependency'
+
+    describe 'caching', () ->
+        describe 'injection', caching_injection_spec
+
+        describe 'registration', caching_registration_spec
