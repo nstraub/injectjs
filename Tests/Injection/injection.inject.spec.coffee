@@ -64,18 +64,36 @@ injection_inject_spec = () ->
 
             expect(adhoc_function_provider()).toBeInstanceOf injector.types.test_dependency.type
 
-    it 'prioritizes fakes over types and providers', () ->
-        injector.fakes =
-            test_provider:
-                name: 'test_provider'
-                dependencies: null
-                type: () ->
-                lifetime: 'transient'
+    describe 'fakes', () ->
+        beforeEach () ->
+            injector.fakes =
+                test_provider:
+                    name: 'test_provider'
+                    dependencies: null
+                    type: () ->
+                    lifetime: 'transient'
 
-        fake = injector.inject('test_provider')()
+                
 
-        expect(test_provider_spy).not.toHaveBeenCalled()
+        afterEach () ->
+            injector.fakes = {}
+
+        it 'prioritizes fakes over types and providers', () ->
+            fake = injector.inject('test_provider')()
+
+            expect(test_provider_spy).not.toHaveBeenCalled()
 
     it 'throws an error when provided dependency name isn`t registered', () ->
         expect(() ->
             injector.inject('nonexistent')).toThrow 'There is no dependency named "nonexistent" registered.'
+
+    describe 'providers', () ->
+        beforeEach () ->
+            injector.providers =
+                test_provider:
+                    type: () -> return @
+                    dependencies: null
+
+        it 'gets a provider using caller`s context', () ->
+            provider = injector.inject('test_provider').call(@)
+            expect(provider).toBe @

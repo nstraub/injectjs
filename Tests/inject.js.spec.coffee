@@ -27,9 +27,6 @@ describe 'injector', () ->
                 type: @test_type,
                 dependencies: null,
                 lifetime: 'transient'
-        afterEach () ->
-            injector.types = {};
-            injector.providers = {};
 
         describe 'register', registration_register_spec
 
@@ -56,6 +53,7 @@ describe 'injector', () ->
     describe 'lifetime', () ->
         test_provider_spy = null
         test_provider_dependency_stub = null
+
         beforeEach () ->
             test_provider_spy = sinon.spy()
             test_provider_dependency_stub = sinon.stub()
@@ -104,9 +102,6 @@ describe 'injector', () ->
                     type: test_provider_dependency_stub
                     lifetime: 'transient'
 
-        afterEach () ->
-            injector.types = {}
-            injector.providers = {}
         describe 'singleton', lifetimes_singleton_spec
 
         describe 'transient', lifetimes_transient_spec

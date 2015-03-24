@@ -12,11 +12,12 @@ injection_get_spec = () ->
                 dependencies: null
                 type: class test_dependency
                 lifetime: 'transient'
+
     it 'instantiates a given type', () ->
         test = injector.get 'test'
-        expect(test instanceof injector.types.test.type).toBeTruthy()
+        expect(test).toBeInstanceOf injector.types.test.type
 
     it 'instantiates a given type`s dependencies', () ->
         injector.types.test.dependencies = ['test_dependency']
         test = injector.get 'test'
-        expect(test.test_dependency instanceof injector.types.test_dependency.type).toBeTruthy()
+        expect(test.test_dependency).toBeInstanceOf injector.types.test_dependency.type

@@ -1,7 +1,4 @@
 injection_run_spec = () ->
-    afterEach () ->
-        delete injector.providers.main
-        
     it 'runs the main function', () ->
         test_main = sinon.spy()
 

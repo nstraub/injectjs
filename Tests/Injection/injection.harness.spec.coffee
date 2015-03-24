@@ -3,9 +3,9 @@ injection_harness_spec = () ->
         sinon.spy injector, 'inject'
 
     afterEach () ->
-        injector.inject.restore
+        injector.inject.restore()
 
-    it 'delays injection until passed funciton is instantiated', () ->
+    it 'delays injection until passed function is instantiated', () ->
         test_method = () ->
             'test'
 
