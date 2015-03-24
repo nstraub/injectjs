@@ -211,5 +211,13 @@ var injector = (function () {
         return injector.get('main');
     };
 
+    Injector.prototype.flushFakes = function () {
+        this.fakes = {};
+    };
+
+    Injector.prototype.removeFake = function (name) {
+        delete this.fakes[name];
+    };
+
     return new Injector();
 })();

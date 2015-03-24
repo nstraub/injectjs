@@ -116,3 +116,7 @@ describe 'injector', () ->
         describe 'injection', caching_injection_spec
 
         describe 'registration', caching_registration_spec
+
+    describe 'fakes', () ->
+        describe 'flushFakes', fakes_flush_fakes_spec
+        describe 'removeFake', fakes_remove_fake_spec
