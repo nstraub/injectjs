@@ -1,5 +1,7 @@
 injection_get_spec = () ->
     beforeEach () ->
+        @test_provider = sinon.spy()
+
         injector.types =
             test:
                 name: 'test'
@@ -13,6 +15,11 @@ injection_get_spec = () ->
                 type: class test_dependency
                 lifetime: 'transient'
 
+        injector.providers =
+            test_provider:
+                dependencies: null
+                type: @test_provider
+
     it 'instantiates a given type', () ->
         test = injector.get 'test'
         expect(test).toBeInstanceOf injector.types.test.type
@@ -21,3 +28,7 @@ injection_get_spec = () ->
         injector.types.test.dependencies = ['test_dependency']
         test = injector.get 'test'
         expect(test.test_dependency).toBeInstanceOf injector.types.test_dependency.type
+
+    it 'applies a context when provided', () ->
+        injector.get('test_provider', @)
+        expect(@test_provider).toHaveBeenCalledOn @

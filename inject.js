@@ -201,8 +201,12 @@ var injector = (function () {
         }
     };
 
-    Injector.prototype.get = function (name) {
-        return this.inject(name)();
+    Injector.prototype.get = function (name, context) {
+        var provider = this.inject(name);
+        if (context) {
+            return provider.call(context);
+        }
+        return provider();
     };
 
     Injector.prototype.harness = function (func) {
@@ -212,11 +216,11 @@ var injector = (function () {
         }
     };
 
-    Injector.prototype.run = function () {
+    Injector.prototype.run = function (context) {
         if (!this.providers.main) {
             throw 'No main method registered. Please register one by running injector.registerMain() before running the app';
         }
-        return injector.get('main');
+        return injector.get('main', context);
     };
 
     Injector.prototype.flushFakes = function () {
