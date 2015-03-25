@@ -3,22 +3,14 @@
  */
 (function () {
 
-    function Foo(mouth, bar) {
-        this.mouth = mouth;
+    function Foo(bar) {
         this.bar = bar;
     }
+    injector.extend('person', Foo);
 
     Foo.prototype.greet = function () {
         this.mouth.say('hello sir');
     };
 
-    Foo.prototype.startParty = function () {
-        this.greet = this.bar.greet;
-    };
-
-    Foo.prototype.endParty = function () {
-        this.greet = Foo.prototype.greet.bind(this);
-    };
-
-    injector.registerType('foo', Foo, 'singleton');
+    injector.registerType('foo', Foo, 'singleton', 'fooProvider');
 }());

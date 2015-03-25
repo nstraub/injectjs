@@ -2,9 +2,10 @@
  * Created by nico on 19/03/2015.
  */
 (function () {
-    injector.registerMain(function(foo, bar) {
-        foo.greet(); // alerts "Hello sir"
-        bar.greet(); // alerts "Hello mate!"
+    injector.registerMain(function(people) {
+        _.each(people, function (person) {
+            person.greet();
+        });
     });
 
     $(function () {

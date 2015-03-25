@@ -11,6 +11,12 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 1. [Why InjectJS](#intro)
 2. [Installation](#install)
 3. [Usage](#use)
+	1. [The Old Way](#use-old)
+	2. [InjectJS Hello World](#use-hello-world)
+	3. [Foo and Bar at a Party](#use-foo-bar-party)
+	4. [Foo and Bar at a Party (using InjectJS)](#use-foo-bar-inject)
+	5. [Introducing Baz (Providers)](#use-providers)
+	6. [Passive Providers (Fixing the LSP Violation Issue)](#use-passive)
 4. [Roadmap](#road)
 5. [API reference](#api)
 	1. [Registration Methods](#registration)
@@ -56,7 +62,8 @@ InjectJS comes with a test suite that fully unit-tests the code. to run it, do t
 # <a name="use"></a>Usage 
 
 The main idea behind InjectJS is getting rid of the new keyword in your code. This may seem a controversial statement and impossible to achieve, but it's quite possible and will make your code leaner and more maintainable, or at the very least, less frustrating.
-Let's start with a Hello World app. Normally you would make a new function called mouth, instantiate somewhere it and then call it:
+
+<a name="use-old"></a>Let's start with a Hello World app. Normally you would make a new function called mouth, instantiate somewhere it and then call it:
  
     function Mouth() {
         this.say = function (what) {
@@ -73,9 +80,11 @@ There are a few problems with this approach:
 2. mouth is global
 3. you need to manually instantiate it to use it
 
+###<a name="use-hello-world"></a> The InjectJS Way
+
 Ok, so one global function and one global variable aren't much to worry about, but this is just the hello world example. With InjectJS you start by registering Mouth as a type:
 
-> DISCLAIMER: the following is all napkin code, which means it hasn't been run anywhere, is likely to contain syntax errors (like missing ;, {} or ()), and is here for the sole purpose of illustrating the basic functionalities of the framework
+
      
     injector.registerType('mouth', function () {
         this.say = function (what) {
@@ -113,7 +122,9 @@ So now, what if you want to hide the original `Mouth` so it is no longer global?
     }());
     
 Ok, great, now we've just solved two of the three initial problems there were with this code (remember you're still manually instantiating). No need for InjectJS then.
-So let's complicate things a bit: introducing `Foo` and `Bar`
+So let's complicate things a bit...
+
+### <a name="use-foo-bar-party"></a>Foo and Bar went off to a party
     
     function Foo(mouth) {
         this.greet = function () {
@@ -148,7 +159,7 @@ Now you have three choices: make Mouth global again, instantiate `Foo` and `Bar`
         bar.greet(); // alerts "Hello mate!"
     });
     
-Finally, run your main function within your apps entry point
+Finally, run your main function within your app's entry point
 
     $(function () {
         injector.run();
@@ -222,7 +233,7 @@ Let's ignore the Liskov Substitution Principle violations in `Foo` for a while..
 3. There's no reliability `people` will reach the party intact.
 4. How do we add a `Baz` object with a `Mouth` outside of that already large and tightly coupled immediate function?
 
-Now let's do the same with InjectJS:
+<a name="use-foo-bar-inject"></a>Now let's do the same with InjectJS:
 
 First file (mouth.js):
 
@@ -308,7 +319,200 @@ Now, we have five decoupled units of logic, that work fine together without real
 3. Both foo and bar will be the same when injected into the main function and into the party function.
 4. If Baz wants to join the party, he just needs to tell the injector he wants a mouth and be done with it, regardless of where he is declared.
 
-The LSP violation is left there intentionally and will be covered when providers are properly implemented... which brings us to the roadmap...
+### <a name="use-providers"></a>Introducing Baz (providers)
+
+So along comes Baz, a new guy in town. He's rather shy and has nothing to say... you know, the kind of guy that sits in a corner all night while the rest of the party rages on... but still, he gets invited. So let's invite him!
+
+First, we're going to refactor our code a bit, to introduce a `Person` object that `Foo`, `Bar` and `Baz` will extend:
+
+	(function () {
+	    function Person(mouth) {
+	        this.mouth = mouth;
+	    }
+	
+	    Person.prototype.greet = function () {
+	        throw 'not implemented';
+	    };
+	
+	    injector.registerType('person', Person)
+	}());
+
+Person is abstract, which means some (or in this case, all) of its methods are unimplemented, which means it's the child `Object's` task to implement them. For `Foo` and `Bar`, that's easy (since they're already implemented anyhow):
+
+foo.js:
+
+	(function () {
+	
+	    function Foo(bar) {
+	        this.bar = bar;
+	    }
+	    injector.extend('person', Foo);
+	
+	    Foo.prototype.greet = function () {
+	        this.mouth.say('hello sir');
+	    };
+	
+	    Foo.prototype.startParty = function () {
+	        this.greet = this.bar.greet;
+	    };
+	
+	    Foo.prototype.endParty = function () {
+	        this.greet = Foo.prototype.greet.bind(this);
+	    };
+	
+	
+	    injector.registerType('foo', Foo, 'singleton');
+	}());
+
+bar.js:
+
+	(function () {
+	    function Bar() { }
+	
+	    injector.extend('person', Bar);
+	
+	    Bar.prototype.greet = function () {
+	        this.mouth.say('hello mate!');
+	    };
+	
+	
+	    injector.registerType('bar', Bar, 'singleton');
+	}());
+
+Note how `Foo` and `Bar` no longer need to refer to mouth as a dependency, that's handled by `Person`. Also note the use of the `extend` utility method, which basically does `child.prototype = new parent()` but ensures all the dependencies for `parent` are met. Now for `Baz`:
+
+	(function () {
+	    function Baz() { }
+	
+	    injector.extend('person', Baz);
+	
+	    Baz.prototype.greet = function () {
+	        this.mouth.say('.');
+	    };
+	
+	
+	    injector.registerType('baz', Baz, 'singleton');
+	}());
+
+Not a very expressive one, is he? but he's invited to the app's start and the party anyway:
+
+main.js:
+
+	(function () {
+	    injector.registerMain(function(foo, bar, baz) {
+	        foo.greet(); // alerts "Hello sir"
+	        bar.greet(); // alerts "Hello mate!"
+			baz.greet();
+	    });
+	
+	    $(function () {
+	        injector.run();
+	    });
+	}());
+
+party.js
+
+	$(function () {
+	    $('#start-party').click(injector.inject(function (foo, bar, baz) {
+	        foo.startParty();
+	        foo.greet();
+	        bar.greet();
+			baz.greet();
+	        foo.endParty();
+	    }));
+	});
+
+OK... this is getting a bit tedious. What if there are three parties instead of one? we'd have to add `baz` to four different files. What if `blargh`, `bret`, `briff` and `blot` suddenly decide to join all three parties? Managing dependencies in all those places suddenly starts getting a bit more complicated than expected... what if we could just inject an `array` of all these `people` and manage them from a centralized location?
+
+	(function () {
+	    injector.registerProvider('people', function (foo, bar, baz) {
+	        var people = [];
+	        people.push(foo);
+	        people.push(bar);
+	        people.push(baz);
+	
+	        return people;
+	    });
+	}());
+
+This is a people provider. As you can see, it's registered differently from types (via `registerProvider`), and behaves a little differently. A type is instantiated before getting injected, whereas a provider is just run and its return value is injected wherever the dependency is needed. So now we can modify our main and party functions to use this provider and forget about adding new `people` to new `parties` everywhere:
+
+main.js:
+
+	(function () {
+	    injector.registerMain(function(people) {
+	        _.each(people, function (person) {
+				person.greet();
+			}
+	    });
+	... (rest of code omitted
+
+party.js
+
+	$(function () {
+	    $('#start-party').click(injector.inject(function (people) {
+	        _.each(people, function (person) {
+				person.greet();
+			});
+	    }));
+	});
+
+Neat, right? Only one problem... our LSP violation is coming to bite us... hard.
+
+> For those who don't know it, the Liskov Substitution Principle is one of the pillars of SOLID development and basically states that a class must be replaceable by it's parent class and any types that inherit from it. In this case `Foo` has to be replaceable by `Person`, `Bar` and `Baz`. It can't though, because none of those objects implement `startParty` nor `endParty`, and this issue is clear as day as we move towards an array full of people. (to learn more about this principle visit [this Wikipedia entry](https://en.wikipedia.org/wiki/Liskov_substitution_principle) 
+
+### <a name="use-passive"></a>Passive Providers (Fixing the LSP Violation Issue)
+
+How do we fix this? the first thing that comes to mind, since JavaScript is a dynamic language, is just checking to see if our guests have the `startParty` method or not:
+
+party.js
+
+	$(function () {
+	    $('#start-party').click(injector.inject(function (people) {
+	        _.each(people, function (person) {
+				if (person.startParty) {
+					person.startParty();
+				}
+				person.greet();
+				if (person.endParty) {
+					person.endParty();
+				}
+			});
+	    }));
+	});
+
+That works, and allows us to adhere to the domain rules set at the beginning of this example while using a people provider. But it's clumsy, really clumsy... I mean, what if our party suddenly has 200 people? Do we really want to run 400 `if` statements just to help one `Foo` be more sociable?? I for one would rather have another solution... introducing passive providers:
+
+fooProvider.js
+
+	(function () {
+	    injector.registerProvider('fooProvider', function (foo, bar) {
+	        if (this.id === 'start-party') {
+	            foo.greet = _.bind(bar.greet, foo);
+	        } else {
+	            foo.greet = _.bind(injector.getType('foo').prototype.greet, foo);
+	        }
+	
+	        return foo;
+	    });
+	}());
+
+This guy makes use of another functionality reserved for providers: they get called using the callers `context`. When run is invoked, the context is `window`, so the value of this.id is undefined, and the greet method remains `Foo`'s usual dreary military salute. When called within a jQuery event, however, the `context` is the button on which the event is being called, and the value of `this.id` is `start-party`. This nifty functionality allows us to check the environment under which a type is being instantiated, and act accordingly. It also gets rid of the LSP violation problem, since `Foo` no longer has (or needs!) `startParty` nor `endParty` to help him be more sociable. How do we use this? We just add one parameter to `Foo`'s registration function:
+
+foo.js ():
+
+	injector.registerType('foo', Foo, 'singleton', 'fooProvider');
+
+Now, every time foo is injected, it will pass through our newly created provider, which will determine what kind of greeting it needs to give. This is why the provider is called passive, because it is anchored to the type and isn't injected directly into wherever the type is needed (very useful for cases when you inject the type into multiple locations, want to add some instantiation functionality, and don't want to change the type for your new provider everywhere).
+
+as an added bonus, since main is identical to the function getting injected into our `#start-party` `click` event, we can do away with the anonymous function and simply inject `main` into our party!
+
+party.js
+
+	$(function () {
+	    $('#start-party').click(injector.inject('main'));
+	});
+
 
 > **Note:** there is one small snag with this example... it cannot be minified. Minification changes parameter names to shorter ones. Personally, I think this is a mistake, and would prefer minifiers to leave parameter names alone. Until that happens, though, if you're going to minify your code, you'll have to use an array in place of a function, as described in the API reference below.
  
