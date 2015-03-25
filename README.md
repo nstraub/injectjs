@@ -2,7 +2,7 @@
 
 a lightweight, small, high level dependency injector with support for object lifetime management
 
-> This software is still not fully baked, at version 0.1, and missing a wealth of functionalities for what constitutes a fully fledged dependency injector
+> This software is still not fully baked, at version 0.2, and missing a wealth of functionalities for what constitutes a fully fledged dependency injector
 
 With that said, I expect to have a fully functional, fully tested, fully decoupled and fully documented version in the next couple of Months. I will greatly appreciate help from early adopters and will gladly embrace feature requests and bug reports uploaded to the issue tracker.
 
@@ -29,8 +29,11 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 		- [injector.run](#injection-run)
 	3. [Utility Methods](#utility)
 		- [injector.getType](#utility-gettype)
+		- [injector.extend](#utility-extend)
 	4. [Test Helpers](#testing)
 		- [injector.registerFake](#testing-fakes)
+		- [injector.removeFake](#testing-fakes-remove)
+		- [injector.flushFakes](#testing-fakes-flush)
 		- [injector.harness](#testing-harness)
 
 ## <a name="intro"></a> Why InjectJS?
@@ -518,25 +521,27 @@ party.js
  
 # <a name="road"></a>Roadmap
 
-The current version, 0.1, has the following features:
+The current version, 0.2, has the following features:
 
-- registering types
-- registering providers
-- instantiating types
-- injecting types into methods
+- [registering types](#registration-type)
+- [registering providers](#registration-provider)
+- [instantiating types](#injection-get)
+- [running providers within a context](#injection-get)
+- [passive providers](#registration-type-provider)
+- [injecting types into methods](#injection-inject)
 - singleton and transient lifetimes
-- registering fakes and test harnesses
+- test facilities: [fakes](#testing-fakes) and [harnesses](#testing-harness)
 
 To sum it up, it provides basic dependency injection capabilities and the ability to use these dependencies in a test environment.
 
 So here are the next planned releases:
 
-- 0.2 Finish implementing providers (currently they don't do much). Also implement auxiliary functions for working with fakes (flushFakes and removeFake)
 - 0.3 root and parent lifetimes.
 - 0.4 Preprocessor for dealing with minifiers
 - 0.5 RequireJS and Grunt build process. Code decoupling and file restructuring
-- 0.6 Property injection.
-- 0.7 Method injection (currying).
+- 0.6 abstract types
+- 0.7 Property injection.
+- 0.8 Method injection (currying).
 
 
 # <a name="api"></a>API reference
@@ -551,8 +556,8 @@ The syntax for this framework takes from and expands the syntax used by AngularJ
 
 **signatures**
 
-*registerType(string name, function type, [string lifetime = transient]) : void*  
-*registerType(string name, array [dependencies...]type, [string lifetime = transient]) : void*
+*registerType(string name, function type, [string lifetime = transient], [string provider]) : void*  
+*registerType(string name, array [dependencies...]type, [string lifetime = transient], [string provider]) : void*
 
 **Parameters**
     
@@ -564,6 +569,9 @@ The syntax for this framework takes from and expands the syntax used by AngularJ
 > **Note**: type MUST be an array if you plan to minify your code 
 
 - lifetime (string): optional, default is transient. the types lifetime, currently supported are singleton (only one instance of the type will exist throughout the applications lifecycle), and transient (every time the type is referred, a new instance is created).
+- <a name="registration-type-provider"></a>*provider (string): optional.* If present, `type` will be passed through the given provider before being injected. It is called `passive provider` because you don't need to actively inject it anywhere.
+
+> **Note:** for now, if you plan on using the default, `transient` lifetime and want to pass in a passive provider, you either need to explicitly specify `"transient"` or pass in `null` as your third parameter.
   
 **example**
   
@@ -622,13 +630,16 @@ Allows you to register the provider that gets invoked when `injector.run()` is c
 gets a registered type or provider. Not recommended for use other than to replace the new keyword while refactoring legacy code
 
 **signatures**
-*get(string|array|function name) : object*
+*get(string|array|function name, context) : object*
 
 **parameters**
 - name(string|array|function): mandatory. 
 	- If string, the name of the type you want to get. 
 	- If function, the function you wish to get. its dependencies are inferred from its parameter names.
 	- If array, an array of dependencies followed by the function you wish to get. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
+- *context (object): optional.* If a context is passed it will be used as the value of `this` on the invoked provider.
+
+> **Note:** `context` is only relevant if you're planning on invoking a provider. when instantiating a type, this parameter has no use (unless the type specifies a passive provider, in which case said provider will run using `context` as `this`).
   
 > **Note**: type MUST be an array if you plan to minify your code 
 
@@ -696,7 +707,11 @@ runs the main function.
 
 **signatures**
 
-*run() : void*
+*run(context) : void*
+
+**parameters**
+
+- *context (object): optional.* If a context is passed it will be used as the value of `this` on the `main` provider
 
 **throws error when no main function is registered**
 
@@ -718,6 +733,21 @@ gets the type for the requested dependency. Useful for checking instanceof and t
 
 the type or null if no type is found.
 
+### <a name="utility-extends"></a>injector.extend
+
+Extends a parent object onto a child object. Like calling `Child.prototype = new Parent()` but ensuring parent gets all its dependencies correctly.
+
+**signature**
+
+*injector.extend(parent, child)*
+
+**parameters**
+
+- *parent (string): mandatory.* The name of the type you wish to extend. It must be registered previously on the injector.
+- *child (function): mandatory.* The child function you wish to have the parent extend.
+
+> **Note:** This functionality only provides the most basic of object extension. If you wish to override methods from the parent on the child object, you need to call extend before defining the objects overridden methods on the prototype. 
+
 ## <a name="testing"></a>Test Helpers
 
 InjectJS currently provides two features to aid in unit testing (tested with jasmine only)
@@ -728,6 +758,26 @@ registers a type as a fake. For now, after using the fake, you need to remove it
 
 **signatures**
 signatures are identical to registerType
+
+### <a name="testing-fakes-remove"></a>injector.removeFake
+
+removes a fake from the fakes collection.
+
+**signature**
+
+*injector.removeFake(name)*
+
+**parameters**
+
+- *name (string): mandatory*. name of the fake you want to remove.
+
+### <a name="testing-fakes-flush"></a>injector.flushFakes
+
+removes all fakes from the fakes collection. Identical to `injector.fakes = {}`
+
+**signature**
+
+*injector.flushFakes()*
 
 ### <a name="testing-harness"></a>injector.harness
 
