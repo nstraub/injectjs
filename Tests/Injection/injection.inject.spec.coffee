@@ -131,6 +131,13 @@ injection_inject_spec = () ->
             provider = injector.inject('test_this_provider').call(@)
             expect(provider).toBe @
 
+        it 'gets a nested provider using caller`s context', () ->
+            injector.providers.test_provider.dependencies = ['test_this_provider']
+            injector.providers.test_provider.type = (ttp) -> return ttp
+                
+            provider = injector.inject('test_provider').call(@)
+            expect(provider).toBe @
+
         it 'creates a function that returns the given provider', () ->
             test = injector.inject 'test_provider'
             test()

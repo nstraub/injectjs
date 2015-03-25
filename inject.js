@@ -1,8 +1,9 @@
 'use strict';
 var injector = (function () {
     function map_dependencies(dependency_providers) {
+        var _this = this;
         return _.map(dependency_providers, function (provider) {
-            return provider();
+            return provider.call(_this);
         });
     }
 
@@ -157,7 +158,6 @@ var injector = (function () {
 
     Injector.prototype.inject = function (name, parent) {
         var descriptor, type, dependency_providers, is_provider, provider;
-
         if (typeof name === 'string') {
             if (this.cache[name]) {
                 return this.cache[name];
@@ -183,7 +183,7 @@ var injector = (function () {
         if (is_provider) {
             provider = (function (dependency_providers) {
                 return function () {
-                    var dependencies = map_dependencies(dependency_providers);
+                    var dependencies = map_dependencies.call(this, dependency_providers);
                     return type.apply(this, dependencies);
                 }
             }(dependency_providers));
@@ -234,7 +234,7 @@ var injector = (function () {
     Injector.prototype.extend = function (parent, child) {
         var parent_type = injector.types[parent];
         if (parent_type) {
-            child.prototype = new parent_type.type;
+            child.prototype = this.get(parent);
         } else {
             throw 'No type "' + parent + '" found.'
         }
