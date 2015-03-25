@@ -231,5 +231,14 @@ var injector = (function () {
         delete this.fakes[name];
     };
 
+    Injector.prototype.extend = function (parent, child) {
+        var parent_type = injector.types[parent];
+        if (parent_type) {
+            child.prototype = new parent_type.type;
+        } else {
+            throw 'No type "' + parent + '" found.'
+        }
+    };
+
     return new Injector();
 })();
