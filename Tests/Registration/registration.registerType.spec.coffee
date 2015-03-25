@@ -9,6 +9,15 @@ registration_register_type_spec = () ->
         @test_result.dependencies = ['test_dependency']
         expect(injector.types['test type']).toEqual @test_result
 
+    it 'registers a provider for the type when specified', () ->
+        type = () ->
+        injector.registerType 'test type', type, null, 'test_provider'
+        @test_result.type = type
+        @test_result.lifetime = 'transient'
+        @test_result.provider = 'test_provider'
+
+        expect(injector.types['test type']).toEqual @test_result
+
     it 'throws an error when invalid lifetime is passed', () ->
         expect(() ->
             injector.registerType('test type', @test_type,

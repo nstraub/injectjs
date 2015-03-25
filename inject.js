@@ -98,7 +98,7 @@ var injector = (function () {
         destination[name] = result;
     };
 
-    Injector.prototype.registerType = function (name, type, lifetime) {
+    Injector.prototype.registerType = function (name, type, lifetime, provider) {
         lifetime = lifetime || 'transient';
 
         if (lifetimes.indexOf(lifetime) === -1) {
@@ -106,6 +106,10 @@ var injector = (function () {
         }
 
         this.register('types', name, type, lifetime);
+
+        if (provider) {
+            this.types[name].provider = provider;
+        }
     };
 
     Injector.prototype.getType = function (name) {
@@ -151,8 +155,9 @@ var injector = (function () {
         }
     }
 
-    Injector.prototype.inject = function (name) {
+    Injector.prototype.inject = function (name, parent) {
         var descriptor, type, dependency_providers, is_provider, provider;
+
         if (typeof name === 'string') {
             if (this.cache[name]) {
                 return this.cache[name];
@@ -171,8 +176,8 @@ var injector = (function () {
 
         type = descriptor.type;
 
-        dependency_providers = _.map(descriptor.dependencies, function (name) {
-            return this.inject(name);
+        dependency_providers = _.map(descriptor.dependencies, function (dependency_name) {
+            return this.inject(dependency_name, name);
         }, this);
 
         if (is_provider) {
@@ -189,6 +194,9 @@ var injector = (function () {
 
             return provider;
         } else {
+            if (descriptor.provider && descriptor.provider !== parent) {
+                return this.cache[name] = this.inject(descriptor.provider, name);
+            }
             return this.cache[name] = providers.build_provider(name, descriptor, dependency_providers)
         }
     };
