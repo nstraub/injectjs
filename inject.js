@@ -8,7 +8,6 @@ var injector = (function () {
     }
 
     var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
-        singletons = {},
         dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/,
         providers = {
             provide_transient: function (type, dependency_providers) {
@@ -24,13 +23,13 @@ var injector = (function () {
                 }
             },
             provide_singleton: function (name, type, dependency_providers) {
-                if (!singletons[ name]) {
+                if (!injector.singletons[name]) {
                     var singleton = providers.provide_transient(type, dependency_providers)();
-                    singletons[name] = function () {
+                    injector.singletons[name] = function () {
                         return singleton;
                     }
                 }
-                return singletons[name];
+                return injector.singletons[name];
             },
             build_provider: function (name, descriptor, dependency_providers) {
                 if (descriptor.lifetime === 'singleton') {
@@ -47,6 +46,7 @@ var injector = (function () {
         this.providers = {};
         this.fakes = {};
         this.cache = {};
+        this.singletons = {};
     }
 
 
@@ -240,5 +240,20 @@ var injector = (function () {
         }
     };
 
-    return new Injector();
+    Injector.prototype.clearSingletons = function () {
+        this.singletons = {};
+        _.each(this.types, function (descriptor, key) {
+            if (descriptor.lifetime === 'singleton') {
+                delete this.cache[key];
+            }
+        }, this);
+    };
+
+    injector = new Injector();
+
+    window.addEventListener('hashchange', function () {
+        injector.clearSingletons();
+    });
+
+    return injector;
 })();

@@ -18,6 +18,7 @@ describe 'injector', () ->
         injector.providers = {}
         injector.fakes = {}
         injector.cache = {}
+        injector.singletons = {}
 
     describe 'registration', () ->
         beforeEach () ->
