@@ -2,7 +2,10 @@
 var injector = (function () {
     function map_dependencies(dependency_providers) {
         var _this = this;
-        return _.map(dependency_providers, function (provider) {
+        return _.map(dependency_providers, function (provider, key) {
+            if (!provider) {
+                throw 'There is no dependency named "' + key + '" registered.';
+            }
             return provider.call(_this);
         });
     }
@@ -171,18 +174,31 @@ var injector = (function () {
         }
 
         if (!descriptor) {
-            throw 'There is no dependency named "' + name + '" registered.';
+            if (parent) {
+                return null;
+            } else {
+                throw 'There is no dependency named "' + name + '" registered.';
+            }
         }
 
         type = descriptor.type;
 
-        dependency_providers = _.map(descriptor.dependencies, function (dependency_name) {
-            return this.inject(dependency_name, name);
+        dependency_providers = {};
+        _.each(descriptor.dependencies, function (dependency_name) {
+            dependency_providers[dependency_name] = this.inject(dependency_name, name);
         }, this);
+
 
         if (is_provider) {
             provider = (function (dependency_providers) {
-                return function () {
+                return function (adhoc_dependencies) {
+                    var adhoc_dependency_providers = {};
+                    _.each(adhoc_dependencies, function (dependency, key) {
+                        adhoc_dependency_providers[key] = function () {
+                            return dependency;
+                        };
+                    });
+                    _.assign(dependency_providers, adhoc_dependency_providers);
                     var dependencies = map_dependencies.call(this, dependency_providers);
                     return type.apply(this, dependencies);
                 }
@@ -201,26 +217,26 @@ var injector = (function () {
         }
     };
 
-    Injector.prototype.get = function (name, context) {
+    Injector.prototype.get = function (name, context, adhoc_dependencies) {
         var provider = this.inject(name);
         if (context) {
-            return provider.call(context);
+            return provider.call(context, adhoc_dependencies);
         }
-        return provider();
+        return provider(adhoc_dependencies);
     };
 
     Injector.prototype.harness = function (func) {
         var _this = this;
-        return function () {
-            return _this.inject(func)();
+        return function (adhoc_dependencies) {
+            return _this.inject(func)(adhoc_dependencies);
         }
     };
 
-    Injector.prototype.run = function (context) {
+    Injector.prototype.run = function (context, adhoc_dependencies) {
         if (!this.providers.main) {
             throw 'No main method registered. Please register one by running injector.registerMain() before running the app';
         }
-        return injector.get('main', context);
+        return injector.get('main', context, adhoc_dependencies);
     };
 
     Injector.prototype.flushFakes = function () {

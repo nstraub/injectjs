@@ -126,6 +126,9 @@ injection_inject_spec = () ->
                 test_this_provider:
                     type: () -> return @
                     dependencies: null
+                test_parametrized_provider:
+                    type: (test_provider_dependency, adhoc_dependency) -> return [test_provider_dependency, adhoc_dependency]
+                    dependencies: ['test_provider_dependency', 'adhoc_dependency']
 
         it 'gets a provider using caller`s context', () ->
             provider = injector.inject('test_this_provider').call(@)
@@ -150,3 +153,9 @@ injection_inject_spec = () ->
             expect(test_provider_dependency_stub).toHaveBeenCalledOnce()
             expect(test_provider_spy).toHaveBeenCalledWith('test')
 
+        describe 'parametrized providers', () ->
+            it 'injects adhoc dependency at instantiation time', () ->
+                test = injector.inject 'test_parametrized_provider'
+                result = test(adhoc_dependency: 'test dependency')
+
+                expect(result[1]).toBe 'test dependency'
