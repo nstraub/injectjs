@@ -44,6 +44,8 @@ describe 'injector', () ->
 
     describe 'extend', utility_extend_spec
 
+    describe 'noConflict', utility_no_conflict_spec
+
     describe 'injection', () ->
         describe 'get', injection_get_spec
 

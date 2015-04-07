@@ -129,6 +129,18 @@ injection_inject_spec = () ->
                 test_parametrized_provider:
                     type: (test_provider_dependency, adhoc_dependency) -> return [test_provider_dependency, adhoc_dependency]
                     dependencies: ['test_provider_dependency', 'adhoc_dependency']
+                a:
+                    type: () -> return 1;
+                    dependencies: null
+                c:
+                    type: () -> return 3;
+                    dependencies: null
+                e:
+                    type: () -> return 5;
+                    dependencies: null
+                test_parametrized_ordered_provider:
+                    type: (f,e,c,d,b,a) -> return [f,e,d,c,b,a]
+                    dependencies: ['f','e','c','d','b','a']
 
         it 'gets a provider using caller`s context', () ->
             provider = injector.inject('test_this_provider').call(@)
@@ -159,3 +171,14 @@ injection_inject_spec = () ->
                 result = test(adhoc_dependency: 'test dependency')
 
                 expect(result[1]).toBe 'test dependency'
+
+            it 'maintains proper dependency order', () ->
+                test = injector.inject 'test_parametrized_ordered_provider'
+                result = test({f:6,d:4,b:2})
+
+                expect(result[0]).toBe 6
+                expect(result[1]).toBe 5
+                expect(result[2]).toBe 4
+                expect(result[3]).toBe 3
+                expect(result[4]).toBe 2
+                expect(result[5]).toBe 1

@@ -16,6 +16,9 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             '../node_modules/lodash/index.js',
+            '../inject.registration.js',
+            'register.method.js',
+            '../inject.providers.js',
             '../inject.js',
             '*/*.spec.coffee',
             '*.spec.coffee',

@@ -30,6 +30,9 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 	3. [Utility Methods](#utility)
 		- [injector.getType](#utility-gettype)
 		- [injector.extend](#utility-extend)
+		- [injector.noConflict](#utility-noConflict)
+		- [injector.hide](#utility-hide)
+		- [injector.clearState](#utility-clearState)
 	4. [Test Helpers](#testing)
 		- [injector.registerFake](#testing-fakes)
 		- [injector.removeFake](#testing-fakes-remove)
@@ -758,6 +761,32 @@ Extends a parent object onto a child object. Like calling `Child.prototype = new
 - *child (function): mandatory.* The child function you wish to have the parent extend.
 
 > **Note:** This functionality only provides the most basic of object extension. If you wish to override methods from the parent on the child object, you need to call extend before defining the object's overridden methods on the prototype. 
+
+### <a name="utility-noConflict"></a>injector.noConflict
+
+Restores the old value of window.injector
+
+**signature**
+
+injector.noConflict()
+
+### <a name="utility-hide"></a>injector.hide
+
+De-registers `hashchange` event for clearing state lifetime `types`.
+
+> **Note:** by default, InjectJS assumes your application is changing state (i.e. moving to another area of the application) every time the hash portion of the URL is changed. While this may be the default behaviour for most web sites, and is encouraged by most routers (like `Backbone`'s `routes`, `simrou`, `AngularJS ng-route`'s default behaviour), more and more sites are adopting HTML5 pushstate, and there are quite a few SPA's which don't use the hash at all. for those sites, you should call this method and then register a handler for your particular state change that calls `injector.clearState`
+
+**signature**
+
+injector.hide()
+
+### <a name="utility-clearState"></a>injector.clearState
+
+Clears all `state` lifetime instantiated types.
+
+**signature**
+
+injector.clearState()
 
 ## <a name="testing"></a>Test Helpers
 
