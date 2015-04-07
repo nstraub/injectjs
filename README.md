@@ -52,7 +52,9 @@ RequireJS is a wonderful modularization framework, but it is not a dependency in
 
 # <a name="install"></a>Installation
 
-simply download inject.js from the source tree and include it into your html page(s)
+simply download inject.registration.js, inject.providers.js, inject.js from the source tree and include it into your html page(s), in that order.
+
+> **Note:** for version 0.2, the code was separated into these three files, to make it more readable. version 0.3 will include a grunt build process to merge and minify all the code into a single inject.js file (and an inject.min.js file, of course).
 
 > **Note:** InjectJS depends on Lodash ([https://lodash.com/](https://lodash.com/)). You can probably use it with underscore as well, but the framework is developed and test using Lodash, so there are no assurances.
 
