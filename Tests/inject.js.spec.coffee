@@ -18,7 +18,7 @@ describe 'injector', () ->
         injector.providers = {}
         injector.fakes = {}
         injector.cache = {}
-        injector.singletons = {}
+        injector.state = {}
 
     describe 'registration', () ->
         beforeEach () ->
@@ -106,6 +106,8 @@ describe 'injector', () ->
                     lifetime: 'transient'
 
         describe 'singleton', lifetimes_singleton_spec
+
+        describe 'state', lifetimes_state_spec
 
         describe 'transient', lifetimes_transient_spec
 

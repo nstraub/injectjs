@@ -10,8 +10,9 @@ var injector = (function () {
         });
     }
 
-    var lifetimes = ['singleton', 'transient', 'instance', 'parent'],
+    var lifetimes = ['singleton', 'transient', 'root', 'parent', 'state'],
         dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/,
+        singletons = {},
         providers = {
             provide_transient: function (type, dependency_providers) {
                 function aux(args) {
@@ -25,20 +26,26 @@ var injector = (function () {
                     return new aux(dependencies);
                 }
             },
-            provide_singleton: function (name, type, dependency_providers) {
-                if (!injector.singletons[name]) {
+            provide_cached: function (name, type, dependency_providers, cached) {
+                if (!cached[name]) {
                     var singleton = providers.provide_transient(type, dependency_providers)();
-                    injector.singletons[name] = function () {
+                    cached[name] = function () {
                         return singleton;
                     }
                 }
-                return injector.singletons[name];
+                return cached[name];
             },
-            build_provider: function (name, descriptor, dependency_providers) {
-                if (descriptor.lifetime === 'singleton') {
-                    return providers.provide_singleton(name, descriptor.type, dependency_providers);
-                } else {
-                    return providers.provide_transient(descriptor.type, dependency_providers);
+            provide_singleton: function (name, type, dependency_providers) {
+                return this.provide_cached(name, type, dependency_providers, singletons);
+            },
+            build_provider: function (name, descriptor, dependency_providers, state) {
+                switch (descriptor.lifetime) {
+                    case 'singleton':
+                        return this.provide_singleton(name, descriptor.type, dependency_providers);
+                    case 'state':
+                        return this.provide_cached(name, descriptor.type, dependency_providers, state);
+                    default:
+                        return this.provide_transient(descriptor.type, dependency_providers);
                 }
             }
 
@@ -49,7 +56,7 @@ var injector = (function () {
         this.providers = {};
         this.fakes = {};
         this.cache = {};
-        this.singletons = {};
+        this.state = {};
     }
 
 
@@ -213,7 +220,7 @@ var injector = (function () {
             if (descriptor.provider && descriptor.provider !== parent) {
                 return this.cache[name] = this.inject(descriptor.provider, name);
             }
-            return this.cache[name] = providers.build_provider(name, descriptor, dependency_providers)
+            return this.cache[name] = providers.build_provider(name, descriptor, dependency_providers, this.state);
         }
     };
 
@@ -256,10 +263,10 @@ var injector = (function () {
         }
     };
 
-    Injector.prototype.clearSingletons = function () {
-        this.singletons = {};
+    Injector.prototype.clearState = function () {
+        this.state = {};
         _.each(this.types, function (descriptor, key) {
-            if (descriptor.lifetime === 'singleton') {
+            if (descriptor.lifetime === 'state') {
                 delete this.cache[key];
             }
         }, this);
