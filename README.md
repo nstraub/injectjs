@@ -528,17 +528,18 @@ The current version, 0.2, has the following features:
 - [instantiating types](#injection-get)
 - [running providers within a context](#injection-get)
 - [passive providers](#registration-type-provider)
+- [provider parameters (aka ad hoc dependencies)](#injection-get-adhoc) 
 - [injecting types into methods](#injection-inject)
-- singleton and transient lifetimes
+- Singleton, Transient and State lifetimes.
 - test facilities: [fakes](#testing-fakes) and [harnesses](#testing-harness)
 
 To sum it up, it provides basic dependency injection capabilities and the ability to use these dependencies in a test environment.
 
 So here are the next planned releases:
 
-- 0.3 root and parent lifetimes.
-- 0.4 Preprocessor for dealing with minifiers
-- 0.5 RequireJS and Grunt build process. Code decoupling and file restructuring
+- 0.3 Code modularization and Grunt build process.
+- 0.4 Root and parent lifetimes.
+- 0.5 Preprocessor for dealing with minifiers.
 - 0.6 abstract types
 - 0.7 Property injection.
 - 0.8 Method injection (currying).
@@ -556,22 +557,22 @@ The syntax for this framework takes from and expands the syntax used by AngularJ
 
 **signatures**
 
-*registerType(string name, function type, [string lifetime = transient], [string provider]) : void*  
-*registerType(string name, array [dependencies...]type, [string lifetime = transient], [string provider]) : void*
+*registerType(name, type, [lifetime = 'transient'], [provider]) : void*  
+*registerType(name, type: [2-\*], [lifetime = 'transient'], [provider]) : void*
 
 **Parameters**
     
-- name (string): mandatory. The name of the type being registered.
-- type (function|array): mandatory. 
-  When type is a function, its dependencies are inferred from its parameter names. 
-  When type is an array, all items except the last are dependency names for the type, and the last is the actual type, which will receive all the aforementioned dependencies on instantiation.
+- *name (string): mandatory*. The name of the type being registered.
+- *type (function|array): mandatory*.
+   - When type is a function, its dependencies are inferred from its parameter names. 
+   - When type is an array, all items except the last are dependency names for the type, and the last is the actual type, which will receive all the aforementioned dependencies on instantiation.
 
-> **Note**: type MUST be an array if you plan to minify your code 
+> **Note**: type **MUST** be an array if you plan to minify your code 
 
-- lifetime (string): optional, default is transient. the types lifetime, currently supported are singleton (only one instance of the type will exist throughout the applications lifecycle), and transient (every time the type is referred, a new instance is created).
+- *lifetime (string): optional, default transient*. the type's lifetime, currently supported are *singleton* (only one instance of the type will exist throughout the applications lifecycle), *state* (one instance exists until the application's state changes), and *transient* (every time the type is referred, a new instance is created).
 - <a name="registration-type-provider"></a>*provider (string): optional.* If present, `type` will be passed through the given provider before being injected. It is called `passive provider` because you don't need to actively inject it anywhere.
 
-> **Note:** for now, if you plan on using the default, `transient` lifetime and want to pass in a passive provider, you either need to explicitly specify `"transient"` or pass in `null` as your third parameter.
+> **Note:** for now, if you plan on using the default, `transient` lifetime and want to pass in a passive provider, you either need to explicitly specify `'transient'` or pass in `null` as your third parameter.
   
 **example**
   
@@ -591,17 +592,17 @@ Allows you to register a provider which can be instantiated by the injector and 
 
 **signatures**
 
-*registerProvider(string name, function provider) : void*  
-*registerProvider(string name, array [dependencies...]provider) : void*
+*registerProvider(name, provider) : void*  
+*registerProvider(name, provider: [2-\*]) : void*
 
 **Parameters**
     
-- name (string): mandatory. The name of the type being registered.
-- provider (function|array): mandatory. 
-  When provider is a function, its dependencies are inferred from its parameter names.
-  When provider is an array, all items except the last are dependency names for the provider, and the last is the actual provider, which will receive all the aforementioned dependencies on instantiation.
+- *name (string): mandatory*. The name of the type being registered.
+- *provider (function|array): mandatory*. 
+   - When provider is a function, its dependencies are inferred from its parameter names.
+   - When provider is an array, all items except the last are dependency names for the provider, and the last is the actual provider, which will receive all the aforementioned dependencies on instantiation.
   
-> **Note**: type MUST be an array if you plan to minify your code 
+> **Note**: type **MUST** be an array if you plan to minify your code 
 
 
     
@@ -611,14 +612,14 @@ Allows you to register the provider that gets invoked when `injector.run()` is c
 
 **signatures**
 
-*registerMain(function provider) : void*  
-*registerMain(array [dependencies...]provider) : void*
+*registerMain(provider) : void*  
+*registerMain(provider: [2-\*]) : void*
 
 **Parameters**
     
-- provider (function|array): mandatory. 
-  When provider is a function, its dependencies are inferred from its parameter names.
-  When provider is an array, all items except the last are dependency names for the provider, and the last is the actual provider, which will receive all the aforementioned dependencies on instantiation.
+- *provider (function|array): mandatory*. 
+   - When provider is a function, its dependencies are inferred from its parameter names.
+   - When provider is an array, all items except the last are dependency names for the provider, and the last is the actual provider, which will receive all the aforementioned dependencies on instantiation.
   
 > **Note**: type MUST be an array if you plan to minify your code 
 
@@ -630,18 +631,22 @@ Allows you to register the provider that gets invoked when `injector.run()` is c
 gets a registered type or provider. Not recommended for use other than to replace the new keyword while refactoring legacy code
 
 **signatures**
-*get(string|array|function name, context) : object*
+*get(name, [context], [ad hoc dependencies]) : object*
 
 **parameters**
-- name(string|array|function): mandatory. 
+
+- *name(string|array|function): mandatory.* 
 	- If string, the name of the type you want to get. 
 	- If function, the function you wish to get. its dependencies are inferred from its parameter names.
 	- If array, an array of dependencies followed by the function you wish to get. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
 - *context (object): optional.* If a context is passed it will be used as the value of `this` on the invoked provider.
+- <a name="injection-get-adhoc"></a>*ad hoc dependencies (object): optional.* An array of dependencies to be passed right before a provider is invoked. Useful for providers that require information specific to the environment where/when they are being invoked. Dependencies in the passed object supersede any dependencies defined via the register methods.
 
 > **Note:** `context` is only relevant if you're planning on invoking a provider. when instantiating a type, this parameter has no use (unless the type specifies a passive provider, in which case said provider will run using `context` as `this`).
+
+> **Note:** ad hoc dependencies are available only for providers (for now).
   
-> **Note**: type MUST be an array if you plan to minify your code 
+> **Note:** type **MUST** be an array if you plan to minify your code 
 
 
 **example**
@@ -654,15 +659,16 @@ gets a registered type or provider. Not recommended for use other than to replac
 injects all dependencies into the requested type and returns a provider for said type. Useful when instantiating the same object multiple times, for currying event callbacks, and for testing.
 
 **signatures**
-*inject(string|array|function name) : object*
+*inject(name) : object*
 
 **parameters**
+
 - name(string|array|function): mandatory. 
 	- If string, the name of the type you want to inject. 
 	- If function, the function you wish to inject. its dependencies are inferred from its parameter names.
 	- If array, an array of dependencies followed by the function you wish to inject. If you supply a name or a function, it will be instantiated as a provider, calling it directly, without the new keyword.
   
-> **Note**: type MUST be an array if you plan to minify your code 
+> **Note**: name **MUST** be an array if you are passing in an anonymous dependency and plan to minify your code 
 
 
 **examples**
@@ -707,11 +713,16 @@ runs the main function.
 
 **signatures**
 
-*run(context) : void*
+*run([context], [ad hoc dependencies]) : void*
 
 **parameters**
 
-- *context (object): optional.* If a context is passed it will be used as the value of `this` on the `main` provider
+- *context (object): optional.* If a context is passed it will be used as the value of `this` on the `main` provider.
+- *ad hoc dependencies (object): optional.* An array of dependencies to be passed right before a provider is invoked. Useful for providers that require information specific to the environment where/when they are being invoked. Dependencies in the passed object supersede any dependencies defined via the register methods.
+
+> **Note:** `context` is only relevant if you're planning on invoking a provider. when instantiating a type, this parameter has no use (unless the type specifies a passive provider, in which case said provider will run using `context` as `this`).
+
+> **Note:** ad hoc dependencies are available only for providers (for now).
 
 **throws error when no main function is registered**
 
@@ -719,15 +730,15 @@ runs the main function.
 
 ### <a name="utility-gettype"></a>injector.getType
 
-gets the type for the requested dependency. Useful for checking instanceof and testing constructors for singleton lifetime types (other uses should be avoided).
+gets the type of requested dependency. Useful for checking instanceof and testing constructors for singleton lifetime types (other uses should be avoided).
 
 **signature**
 
-*getType(string name) : Type|null*
+*getType(name) : Type|null*
 
 **parameters**
 
-- name (string): mandatory. name of the dependency for which you wish to get the type.
+- *name (string): mandatory*. name of the dependency for which you wish to get the type.
 
 **returns**
 
@@ -746,18 +757,18 @@ Extends a parent object onto a child object. Like calling `Child.prototype = new
 - *parent (string): mandatory.* The name of the type you wish to extend. It must be registered previously on the injector.
 - *child (function): mandatory.* The child function you wish to have the parent extend.
 
-> **Note:** This functionality only provides the most basic of object extension. If you wish to override methods from the parent on the child object, you need to call extend before defining the objects overridden methods on the prototype. 
+> **Note:** This functionality only provides the most basic of object extension. If you wish to override methods from the parent on the child object, you need to call extend before defining the object's overridden methods on the prototype. 
 
 ## <a name="testing"></a>Test Helpers
 
-InjectJS currently provides two features to aid in unit testing (tested with jasmine only)
+InjectJS currently provides some features to aid in unit testing (tested with jasmine only)
 
 ### <a name="testing-fakes"></a>injector.registerFake
 
-registers a type as a fake. For now, after using the fake, you need to remove it with `delete injector.fakes.fakeName` (functions for dealing with fakes will come with version 0.2) 
+registers a type as a fake. 
 
 **signatures**
-signatures are identical to registerType
+signatures are identical to [registerType](#registration-type)
 
 ### <a name="testing-fakes-remove"></a>injector.removeFake
 
@@ -781,7 +792,7 @@ removes all fakes from the fakes collection. Identical to `injector.fakes = {}`
 
 ### <a name="testing-harness"></a>injector.harness
 
-identical to inject, but injects dependencies lazily (inject is eager)
+identical to [inject](#injection-inject), but injects dependencies lazily (inject is eager)
  
 **example**
 
