@@ -4,6 +4,7 @@ utility_extend_spec = () ->
             test:
                 type: () ->
                 dependencies: null
+                lifetime: 'transient'
 
         new_type = () ->
         injector.extend('test', new_type)

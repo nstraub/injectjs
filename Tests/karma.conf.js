@@ -17,8 +17,8 @@ module.exports = function (config) {
         files: [
             '../node_modules/lodash/index.js',
             '../inject.registration.js',
-            'register.method.js',
             '../inject.providers.js',
+            'register.method.js',
             '../inject.js',
             '*/*.spec.coffee',
             '*.spec.coffee',

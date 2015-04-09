@@ -12,7 +12,6 @@ var injector = (function (providers, registration) {
         this.types = {};
         this.providers = {};
         this.fakes = {};
-        this.cache = {};
         this.state = {};
     }
 
@@ -58,13 +57,13 @@ var injector = (function (providers, registration) {
      -- Injection Methods --
      ----------------------*/
     function _inject (name, parent) {
-        var descriptor, type, dependency_providers, is_provider, provider;
+        var descriptor, type, dependency_providers, is_provider;
         if (typeof name === 'string') {
-            if (this.cache[name]) {
-                return this.cache[name];
-            }
             descriptor = this.fakes[name] || this.types[name] || this.providers[name];
             is_provider = !!this.providers[name];
+            if (providers.cache[name] && providers.cache[name].hashCode === descriptor.hashCode) {
+                return providers.cache[name];
+            }
 
         } else {
             descriptor = registration.build_anonymous_descriptor(name);
@@ -78,6 +77,9 @@ var injector = (function (providers, registration) {
                 throw 'There is no dependency named "' + name + '" registered.';
             }
         }
+        if (descriptor.provider && descriptor.provider !== parent) {
+            return _inject.call(this, descriptor.provider, name);
+        }
 
         type = descriptor.type;
 
@@ -86,21 +88,7 @@ var injector = (function (providers, registration) {
             dependency_providers[dependency_name] = _inject.call(this, dependency_name, name);
         }, this);
 
-
-        if (is_provider) {
-            provider = providers.provide_provider(dependency_providers, type);
-
-            if (typeof name === 'string') {
-                this.cache[name] = provider;
-            }
-
-            return provider;
-        } else {
-            if (descriptor.provider && descriptor.provider !== parent) {
-                return this.cache[name] = _inject.call(this, descriptor.provider, name);
-            }
-            return this.cache[name] = providers.build_provider(name, descriptor, dependency_providers, this.state);
-        }
+        return providers.build_provider(name, descriptor, dependency_providers, this.state);
     }
 
     Injector.prototype.inject = function (name) {
@@ -183,7 +171,7 @@ var injector = (function (providers, registration) {
         this.state = {};
         _.each(this.types, function (descriptor, key) {
             if (descriptor.lifetime === 'state') {
-                delete this.cache[key];
+                delete providers.cache[key];
             }
         }, this);
     };

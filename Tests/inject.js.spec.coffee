@@ -13,17 +13,21 @@ describe 'injector', () ->
             }
         return
 
+    beforeEach () ->
+        injector.currentHashCode = 1
+
     afterEach () ->
         injector.types = {}
         injector.providers = {}
         injector.fakes = {}
-        injector.cache = {}
+        no_conflict_providers.cache = {}
         injector.state = {}
 
     describe 'registration', () ->
         beforeEach () ->
             @test_type = () ->
             @test_result =
+                hashCode: 1
                 name: 'test type',
                 type: @test_type,
                 dependencies: null,

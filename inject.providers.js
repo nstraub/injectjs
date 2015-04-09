@@ -3,8 +3,17 @@
  */
 'use strict';
 var providers = (function () {
-    function map_dependencies(dependency_providers) {
-        var _this = this;
+    function map_dependencies(dependency_providers, adhoc_dependencies) {
+        var _this = this,
+            adhoc_dependency_providers = {};
+
+        _.each(adhoc_dependencies, function (dependency, key) {
+            adhoc_dependency_providers[key] = function () {
+                return dependency;
+            };
+        });
+        _.assign(dependency_providers, adhoc_dependency_providers);
+
         return _.map(dependency_providers, function (provider, key) {
             if (!provider) {
                 throw 'There is no dependency named "' + key + '" registered.';
@@ -14,9 +23,11 @@ var providers = (function () {
     }
 
     var singletons = {},
+        cache = {},
         old_providers = providers;
 
     return {
+        cache: {},
         noConflict: function () {
             window.providers = old_providers;
         },
@@ -27,44 +38,42 @@ var providers = (function () {
 
             aux.prototype = type.prototype;
 
-            return function () {
-                var dependencies = map_dependencies(dependency_providers);
+            return function (adhoc_dependencies) {
+                var dependencies = map_dependencies(dependency_providers, adhoc_dependencies);
                 return new aux(dependencies);
             }
         },
-        provide_cached: function (name, type, dependency_providers, cached) {
-            if (!cached[name]) {
-                var singleton = this.provide_transient(type, dependency_providers)();
-                cached[name] = function () {
-                    return singleton;
+        provide_singleton: function (name, type, dependency_providers, singleton_cache) {
+            var _this = this;
+            if (!singleton_cache[name]) {
+                var dependency_to_cache = this.provide_transient(type, dependency_providers);
+                singleton_cache[name] = function (adhoc_dependencies) {
+                    dependency_to_cache = dependency_to_cache(adhoc_dependencies);
+                    _this.cache[name] = singleton_cache[name] = function () {
+                        return dependency_to_cache;
+                    };
+                    return dependency_to_cache;
                 }
             }
-            return cached[name];
-        },
-        provide_singleton: function (name, type, dependency_providers) {
-            return this.provide_cached(name, type, dependency_providers, singletons);
+            return singleton_cache[name];
         },
         provide_provider: function(dependency_providers, type) {
             return function (adhoc_dependencies) {
-                var adhoc_dependency_providers = {};
-                _.each(adhoc_dependencies, function (dependency, key) {
-                    adhoc_dependency_providers[key] = function () {
-                        return dependency;
-                    };
-                });
-                _.assign(dependency_providers, adhoc_dependency_providers);
-                var dependencies = map_dependencies.call(this, dependency_providers);
+                var dependencies = map_dependencies.call(this, dependency_providers, adhoc_dependencies);
                 return type.apply(this, dependencies);
             }
         },
-        build_provider: function (name, descriptor, dependency_providers, state) {
+        build_provider: function (name, descriptor, dependency_providers, cache) {
+            if (!descriptor.lifetime) {
+                return this.cache[name] = this.provide_provider(dependency_providers, descriptor.type);
+            }
             switch (descriptor.lifetime) {
                 case 'singleton':
-                    return this.provide_singleton(name, descriptor.type, dependency_providers);
+                    return this.cache[name] = this.provide_singleton(name, descriptor.type, dependency_providers, singletons);
                 case 'state':
-                    return this.provide_cached(name, descriptor.type, dependency_providers, state);
+                    return this.cache[name] = this.provide_singleton(name, descriptor.type, dependency_providers, cache);
                 default:
-                    return this.provide_transient(descriptor.type, dependency_providers);
+                    return this.cache[name] = this.provide_transient(descriptor.type, dependency_providers);
             }
         }
 

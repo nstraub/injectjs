@@ -32,8 +32,6 @@ var registration = (function () {
                 throw 'Type must have a name';
             }
 
-            delete this.cache[name];
-
             if (!type) {
                 throw 'no type was passed';
             } else if (typeof type === 'function') {
@@ -51,7 +49,8 @@ var registration = (function () {
             var result = {
                 name: name,
                 type: realType,
-                dependencies: dependencies
+                dependencies: dependencies,
+                hashCode: this.currentHashCode++
             };
             if (lifetime) {
                 result.lifetime = lifetime;

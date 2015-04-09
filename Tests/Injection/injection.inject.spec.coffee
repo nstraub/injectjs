@@ -22,6 +22,7 @@ injection_inject_spec = () ->
         test = injector.inject 'test'
         expect(test().test_dependency instanceof injector.types.test_dependency.type).toBeTruthy()
 
+
     describe 'passive providers', () ->
         test_provider_spy = null
         beforeEach () ->
@@ -33,11 +34,13 @@ injection_inject_spec = () ->
                     type: () ->
                     lifetime: 'transient'
                     provider: 'test_provider'
+                    hashCode: 1
 
             injector.providers =
                 test_provider:
                     dependencies: ['test_type']
                     type: test_provider_spy
+                    hashCode: 2
 
         it 'uses specified provider to instantiate type', () ->
             provider = injector.inject 'test_type'
@@ -174,7 +177,7 @@ injection_inject_spec = () ->
 
             it 'maintains proper dependency order', () ->
                 test = injector.inject 'test_parametrized_ordered_provider'
-                result = test({f:6,d:4,b:2})
+                result = test({b:2,d:4,f:6})
 
                 expect(result[0]).toBe 6
                 expect(result[1]).toBe 5

@@ -5,6 +5,17 @@ registration_register_spec = () ->
         @test_result.lifetime = 'singleton'
         expect(injector.types['test type']).toEqual @test_result
 
+    it 'assigns a hash code to every registered type', () ->
+        injector.registerType('test_type_1', () -> return)
+        injector.registerType('test_type_2', () -> return)
+        injector.registerType('test_type_3', () -> return)
+
+        expect(injector.types.test_type_1.hashCode).toBe 1
+        expect(injector.types.test_type_2.hashCode).toBe 2
+        expect(injector.types.test_type_3.hashCode).toBe 3
+
+        expect(injector.currentHashCode).toBe 4
+
     it 'sets empty dependencies when type has no dependencies', () ->
         injector.registerType 'test type', @test_type, 'singleton'
         @test_result.lifetime = 'singleton'
