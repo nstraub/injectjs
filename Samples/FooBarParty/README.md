@@ -1,9 +1,16 @@
 ### <a name="use-foo-bar-party"></a>Foo and Bar went off to a party
 
+----------
+
 1. [Foo and Bar at a Party](#use-foo-bar-party)
 2. [Foo and Bar at a Party (using InjectJS)](#use-foo-bar-inject)
 3. [Introducing Baz (Providers)](#use-providers)
 4. [Passive Providers (Fixing the LSP Violation Issue)](#use-passive)
+
+
+----------
+
+
     
     function Foo(mouth) {
         this.greet = function () {
