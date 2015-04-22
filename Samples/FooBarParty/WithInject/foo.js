@@ -3,8 +3,7 @@
  */
 (function () {
 
-    function Foo(bar) {
-        this.bar = bar;
+    function Foo() {
     }
     injector.extend('person', Foo);
 

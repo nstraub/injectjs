@@ -48,10 +48,12 @@ var providers = (function () {
             if (!singleton_cache[name]) {
                 var dependency_to_cache = this.provide_transient(type, dependency_providers);
                 singleton_cache[name] = function (adhoc_dependencies) {
-                    dependency_to_cache = dependency_to_cache(adhoc_dependencies);
-                    _this.cache[name] = singleton_cache[name] = function () {
-                        return dependency_to_cache;
-                    };
+                    if (typeof dependency_to_cache === 'function') {
+                        dependency_to_cache = dependency_to_cache(adhoc_dependencies);
+                        _this.cache[name] = singleton_cache[name] = function () {
+                            return dependency_to_cache;
+                        };
+                    }
                     return dependency_to_cache;
                 }
             }
