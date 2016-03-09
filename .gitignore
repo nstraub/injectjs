@@ -3,3 +3,5 @@ node_modules
 npm-debug.log
 bower_components
 coverage
+Tests/karma.dist.conf.js
+karma

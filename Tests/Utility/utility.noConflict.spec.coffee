@@ -10,7 +10,7 @@ utility_no_conflict_spec = () ->
 
         expect(injector).toBe 'test conflict injector'
 
-    describe 'hide method', () ->
+    describe 'removeDefaultListener method', () ->
         beforeEach () ->
             sinon.spy(window, 'removeEventListener')
 
@@ -18,6 +18,6 @@ utility_no_conflict_spec = () ->
             window.removeEventListener.restore()
 
         it 'de-registers hashchange event for clearing state', () ->
-            injector.hide()
+            injector.removeDefaultListener()
 
             expect(window.removeEventListener).toHaveBeenCalledWith('hashchange')

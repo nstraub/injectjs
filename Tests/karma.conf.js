@@ -24,10 +24,10 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             'node_modules/lodash/index.js',
-            'inject.*.js',
+            'src/inject.*.js',
             'Tests/register.method.js',
-            'inject.js',
-            '**/*.spec.coffee',
+            'src/inject.js',
+            'Tests/**/*.spec.coffee',
             'bower_components/sinonjs/sinon.js',
             'bower_components/jasmine-sinon/lib/jasmine-sinon.js'
         ],
