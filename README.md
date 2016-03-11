@@ -49,9 +49,9 @@ RequireJS is a wonderful modularization framework, but it is not a dependency in
 
 # <a name="install"></a>Installation
 
-simply download inject.registration.js, inject.providers.js, inject.js from the source tree and include it into your html page(s), in that order.
+simply download inject.js or inject.min.js from the dist folder and include it into your html page(s), in that order.
 
-> **Note:** for version 0.2, the code was separated into these three files, to make it more readable. version 0.3 will include a grunt build process to merge and minify all the code into a single inject.js file (and an inject.min.js file, of course).
+> **Note:** As of version 0.3 InjectJS includes a grunt build process to lint, test, merge and minify all the code into a single inject.js file (and an inject.min.js file, of course). If you want to tinker about with the different aspects of the library simply clone it and look into the src dir. 
 
 > **Note:** InjectJS depends on Lodash ([https://lodash.com/](https://lodash.com/)). You can probably use it with underscore as well, but the framework is developed and test using Lodash, so there are no assurances.
 
@@ -62,7 +62,7 @@ InjectJS comes with a test suite that fully unit-tests the code. to run it, do t
 1. clone the repository (or download and extract the auto-generated zip)
 2. run npm install
 3. run bower install
-4. the karma config file is located in Tests/karma.conf.js
+4. there are three karma config files in Tests: karma.conf.js (runs tests against src), karma.dist.conf.js (runs tests against dist/inject.js) and karma.dist.min.conf.js (runs tests against dist/inject.min.js). The default grunt task only runs karma.conf.js, running `grunt deploy` will run all tests on all browsers and both dist files. 
 
 # <a name="use"></a>Usage 
 

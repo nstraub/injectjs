@@ -19,7 +19,7 @@ module.exports = function(grunt) {
       },
       dist: {
         src: ['src/*.js', '!src/require.shim.js'],
-        dest: 'dist/<%= pkg.name %>.js'
+        dest: 'dist/inject.js'
       }
     },
     uglify: {
@@ -28,7 +28,7 @@ module.exports = function(grunt) {
       },
       dist: {
         src: '<%= concat.dist.dest %>',
-        dest: 'dist/<%= pkg.name %>.min.js'
+        dest: 'dist/inject.min.js'
       }
     },
     jshint: {
@@ -52,31 +52,39 @@ module.exports = function(grunt) {
         src: 'Gruntfile.js'
       },
       lib_test: {
-        src: ['lib/**/*.js', 'test/**/*.js']
+        src: ['src/**/*.js', 'Tests/**/*.js']
       }
-    },
-    nodeunit: {
-      files: ['test/**/*_test.js']
     },
     watch: {
-      gruntfile: {
-        files: '<%= jshint.gruntfile.src %>',
-        tasks: ['jshint:gruntfile']
-      },
-      lib_test: {
-        files: '<%= jshint.lib_test.src %>',
-        tasks: ['jshint:lib_test', 'nodeunit']
+      scripts: {
+        files: ['Gruntfile.js', 'src/*.js', 'Tests/*.js', 'Tests/**/*.coffee'],
+        tasks: ['jshint', 'karma:unit', 'concat', 'uglify']
       }
+    },
+    karma: {
+      unit: {
+        configFile: 'Tests/karma.conf.js'
+      },
+      full: {
+        configFile: 'Tests/karma.full.conf.js'
+      },
+      dist: {
+        configFile: 'Tests/karma.dist.conf.js'
+      },
+      min: {
+        configFile: 'Tests/karma.dist.min.conf.js'
+      },
     }
   });
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-nodeunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-karma');
 
   // Default task.
-  grunt.registerTask('default',['concat', 'uglify']);
+  grunt.registerTask('default',['watch']);
+  grunt.registerTask('deploy', ['jshint', 'karma:full', 'concat', 'uglify', 'karma:dist', 'karma:min']);
 };
