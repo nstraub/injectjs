@@ -1,5 +1,2 @@
-/**
- * Created by nico on 07/04/2015.
- */
-'use strict';
+/* exported injector */
 var injector = 'test conflict injector';

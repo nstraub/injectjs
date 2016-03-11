@@ -11,16 +11,6 @@ describe 'injector', () ->
                     result.message = 'Expected ' + actual + ' to be an instance of ' + expected
                 return result
             }
-        injector.harness = (func) ->
-            _this = @;
-            return (adhoc_dependencies) ->
-                return _this.inject(func)(adhoc_dependencies)
-
-        injector.removeFake = (name) ->
-          delete @fakes[name]
-
-        injector.flushFakes = () ->
-          this.fakes = {}
         return
 
     beforeEach () ->

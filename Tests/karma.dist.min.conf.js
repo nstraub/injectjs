@@ -24,10 +24,8 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             'node_modules/lodash/index.js',
-            'src/inject.*.js',
             'Tests/register.method.js',
-            'src/inject.js',
-            'Tests/instantiate.injector.coffee',
+            'dist/injectjs.min.js',
             'Tests/**/*.spec.coffee',
             'bower_components/sinonjs/sinon.js',
             'bower_components/jasmine-sinon/lib/jasmine-sinon.js'
@@ -76,7 +74,7 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Firefox', 'Chrome', 'PhantomJS'],
+        browsers: ['Chrome', 'Firefox', 'PhantomJS'],
 
 
         // Continuous Integration mode

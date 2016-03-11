@@ -54,6 +54,15 @@ registration_register_spec = () ->
             injector.registerType 'test type', @test_type, 'singleton'
             expect(injector.types['test type']).toEqual @test_result
 
+        it 'registers dependencies for a type with three dependencies', () ->
+            @test_type = (test_dependency, test_dependency_2, test_dependency_3) ->
+            @test_result.type = @test_type
+            @test_result.dependencies = ['test_dependency', 'test_dependency_2', 'test_dependency_3']
+            @test_result.lifetime = 'singleton'
+
+            injector.registerType 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result
+
         it 'registers no dependencies for a type with a nested function with parameters', () ->
             @test_type = () -> (nested_parameter) ->
             @test_result.type = @test_type
