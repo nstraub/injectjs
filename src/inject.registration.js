@@ -1,18 +1,22 @@
 /**
  * Created by nico on 07/04/2015.
  */
+/* globals Injector: false */
+/* globals lifetimes: false */
+
 var get_dependency_names = (function () {
     var dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/;
+    var separatorPattern = /, ?/;
     return function get_dependency_names(type) {
         var serialized_type = type.toString();
         var serialized_dependencies;
 
         if (serialized_dependencies = dependency_pattern.exec(serialized_type)) {
-            return serialized_dependencies[1].split(/, ?/);
+            return serialized_dependencies[1].split(separatorPattern);
         } else {
             return null;
         }
-    }
+    };
 }());
 
 
@@ -20,7 +24,7 @@ Injector.prototype.registerType = function (name, type, lifetime, provider) {
     lifetime = lifetime || 'transient';
 
     if (!~lifetimes.indexOf(lifetime)) {
-        throw 'invalid lifetime "' + lifetime + '" provided. Valid lifetimes are singleton, transient, instance and parent'
+        throw 'invalid lifetime "' + lifetime + '" provided. Valid lifetimes are singleton, transient, instance and parent';
     }
 
     this._register('types', name, type, lifetime);
@@ -42,7 +46,7 @@ Injector.prototype.registerFake = function (name, type, lifetime) {
     lifetime = lifetime || 'transient';
 
     if (!~lifetimes.indexOf(lifetime)) {
-        throw 'invalid lifetime "' + lifetime + '" provided. Valid lifetimes are singleton, transient, instance and parent'
+        throw 'invalid lifetime "' + lifetime + '" provided. Valid lifetimes are singleton, transient, instance and parent';
     }
 
     this._register('fakes', name, type, lifetime);
@@ -53,7 +57,7 @@ Injector.prototype._register = function (where, name, type, lifetime) {
     var realType, dependencies;
     var destination = this[where];
     if (typeof destination === 'undefined') {
-        throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers, fakes and main'
+        throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers, fakes and main';
     }
 
     if (typeof name !== 'string' || name === '') {
@@ -90,11 +94,11 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
         return {
             type: name,
             dependencies: get_dependency_names(name)
-        }
+        };
     } else {
         return {
             type: name.pop(),
             dependencies: name
-        }
+        };
     }
 };

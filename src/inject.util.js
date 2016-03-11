@@ -1,10 +1,14 @@
+/* globals Injector: false */
+/* globals injector: false */
+/* globals old_injector: false */
+/* globals window: false */
 Injector.prototype.getType = function (name) {
     var type = this.fakes[name] || this.types[name];
 
     if (type) {
         return type.type;
     }
-    return null
+    return null;
 };
 
 Injector.prototype.extend = function (parent, child) {
@@ -12,20 +16,20 @@ Injector.prototype.extend = function (parent, child) {
     if (parent_type) {
         child.prototype = this.get(parent);
     } else {
-        throw 'No type "' + parent + '" found.'
+        throw 'No type "' + parent + '" found.';
     }
 };
 
 function listener() {
     injector.clearState();
-};
+}
 
 Injector.prototype.noConflict = function () {
     window.injector = old_injector;
 };
 
 Injector.prototype.removeDefaultListener = function () {
-    window.removeEventListener('hashchange', listener)
+    window.removeEventListener('hashchange', listener);
 };
 
 /*-------------------

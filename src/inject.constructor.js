@@ -1,3 +1,4 @@
+/* exported Injector */
 function Injector() {
     this.types = {};
     this.providers = {};

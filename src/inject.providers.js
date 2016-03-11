@@ -1,37 +1,33 @@
-/**
- * Created by nico on 07/04/2015.
- */
-    function map_dependencies(dependency_providers, adhoc_dependencies) {
-        var _this = this,
-            adhoc_dependency_providers = {};
+/* globals Injector: false */
 
-        _.each(adhoc_dependencies, function (dependency, key) {
-            adhoc_dependency_providers[key] = function () {
-                return dependency;
-            };
-        });
-        _.assign(dependency_providers, adhoc_dependency_providers);
+function map_dependencies(dependency_providers, adhoc_dependencies) {
+    var _this = this,
+        adhoc_dependency_providers = {};
 
-        return _.map(dependency_providers, function (provider, key) {
-            if (!provider) {
-                throw 'There is no dependency named "' + key + '" registered.';
-            }
-            return provider.call(_this);
-        });
-    }
+    _.each(adhoc_dependencies, function (dependency, key) {
+        adhoc_dependency_providers[key] = function () {
+            return dependency;
+        };
+    });
+    _.assign(dependency_providers, adhoc_dependency_providers);
+
+    return _.map(dependency_providers, function (provider, key) {
+        if (!provider) {
+            throw 'There is no dependency named "' + key + '" registered.';
+        }
+        return provider.call(_this);
+    });
+}
 
 Injector.prototype.cache = {};
+var createObject = Object.create;
 Injector.prototype.provide_transient = function (type, dependency_providers) {
-    function Aux(args) {
-        return type.apply(this, args);
-    }
-
-    Aux.prototype = type.prototype;
-
     return function (adhoc_dependencies) {
-        var dependencies = map_dependencies(dependency_providers, adhoc_dependencies);
-        return new Aux(dependencies);
-    }
+        var instance = createObject(type.prototype);
+
+        type.apply(instance, map_dependencies(dependency_providers, adhoc_dependencies));
+        return instance;
+    };
 };
 Injector.prototype.provide_singleton = function (name, type, dependency_providers, singleton_cache) {
     var _this = this;
@@ -45,7 +41,7 @@ Injector.prototype.provide_singleton = function (name, type, dependency_provider
                 };
             }
             return dependency_to_cache;
-        }
+        };
     }
     return singleton_cache[name];
 };
@@ -53,7 +49,7 @@ Injector.prototype.provide_provider = function(dependency_providers, type) {
     return function (adhoc_dependencies) {
         var dependencies = map_dependencies.call(this, dependency_providers, adhoc_dependencies);
         return type.apply(this, dependencies);
-    }
+    };
 };
 
 (function () {
