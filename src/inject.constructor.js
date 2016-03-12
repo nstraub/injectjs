@@ -5,3 +5,5 @@ function Injector() {
     this.fakes = {};
     this.state = {};
 }
+
+Injector.prototype.DEFAULT_LIFETIME = 'transient';

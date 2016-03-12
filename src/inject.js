@@ -2,9 +2,25 @@
 /* globals window: false */
 /* exported lifetimes */
 /* exported old_injector */
+/* globals get_dependency_names*/
+
 var lifetimes = ['singleton', 'transient', 'root', 'parent', 'state'];
 
 var old_injector = window.injector;
+
+Injector.prototype.build_anonymous_descriptor = function (name) { // for when inject is called with an anonymous function
+    if (typeof name === 'function') {
+        return {
+            type: name,
+            dependencies: get_dependency_names(name)
+        };
+    } else {
+        return {
+            type: name.pop(),
+            dependencies: name
+        };
+    }
+};
 
 /*----------------------
  -- Injection Methods --

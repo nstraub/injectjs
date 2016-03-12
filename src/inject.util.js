@@ -2,6 +2,23 @@
 /* globals injector: false */
 /* globals old_injector: false */
 /* globals window: false */
+/* exported get_dependency_names*/
+
+var get_dependency_names = (function () {
+    var dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/;
+    var separatorPattern = /, ?/;
+    return function get_dependency_names(type) {
+        var serialized_type = type.toString();
+        var serialized_dependencies;
+
+        if (serialized_dependencies = dependency_pattern.exec(serialized_type)) {
+            return serialized_dependencies[1].split(separatorPattern);
+        } else {
+            return null;
+        }
+    };
+}());
+
 Injector.prototype.getType = function (name) {
     var type = this.fakes[name] || this.types[name];
 

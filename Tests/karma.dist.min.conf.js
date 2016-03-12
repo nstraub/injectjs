@@ -25,7 +25,7 @@ module.exports = function (config) {
         files: [
             'node_modules/lodash/index.js',
             'Tests/register.method.js',
-            'dist/injectjs.min.js',
+            'dist/inject.min.js',
             'Tests/**/*.spec.coffee',
             'bower_components/sinonjs/sinon.js',
             'bower_components/jasmine-sinon/lib/jasmine-sinon.js'

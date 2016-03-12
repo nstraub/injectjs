@@ -53,7 +53,7 @@ simply download inject.js or inject.min.js from the dist folder and include it i
 
 > **Note:** As of version 0.3 InjectJS includes a grunt build process to lint, test, merge and minify all the code into a single inject.js file (and an inject.min.js file, of course). If you want to tinker about with the different aspects of the library simply clone it and look into the src dir. 
 
-> **Note:** InjectJS depends on Lodash ([https://lodash.com/](https://lodash.com/)). You can probably use it with underscore as well, but the framework is developed and test using Lodash, so there are no assurances.
+> **Note:** InjectJS depends on Lodash ([https://lodash.com/](https://lodash.com/)). You can probably use it with underscore as well, but the library is developed and tested using Lodash, so there are no assurances.
 
 ## Tests
 
@@ -130,7 +130,7 @@ So let's complicate things a bit...
 
 # <a name="road"></a>Roadmap
 
-The current version, 0.2, has the following features:
+The current version, 0.3, has the following features:
 
 - [registering types](#registration-type)
 - [registering providers](#registration-provider)
@@ -141,12 +141,13 @@ The current version, 0.2, has the following features:
 - [injecting types into methods](#injection-inject)
 - Singleton, Transient and State lifetimes.
 - test facilities: [fakes](#testing-fakes) and [harnesses](#testing-harness)
+- Code modularization and Grunt build process.
 
 To sum it up, it provides basic dependency injection capabilities and the ability to use these dependencies in a test environment.
 
 So here are the next planned releases:
 
-- 0.3 Code modularization and Grunt build process.
+
 - 0.4 Root and parent lifetimes.
 - 0.5 Preprocessor for dealing with minifiers.
 - 0.6 abstract types
@@ -166,7 +167,7 @@ The syntax for this framework takes from and expands the syntax used by AngularJ
 
 **signatures**
 
-*registerType(name, type, [lifetime = 'transient'], [provider]) : void*  
+*registerType(name, type, [lifetime = 'transient'], [provider]) : void*
 *registerType(name, type: [2-\*], [lifetime = 'transient'], [provider]) : void*
 
 **Parameters**
@@ -201,7 +202,7 @@ Allows you to register a provider which can be instantiated by the injector and 
 
 **signatures**
 
-*registerProvider(name, provider) : void*  
+*registerProvider(name, provider) : void*
 *registerProvider(name, provider: [2-\*]) : void*
 
 **Parameters**
@@ -221,7 +222,7 @@ Allows you to register the provider that gets invoked when `injector.run()` is c
 
 **signatures**
 
-*registerMain(provider) : void*  
+*registerMain(provider) : void*
 *registerMain(provider: [2-\*]) : void*
 
 **Parameters**
