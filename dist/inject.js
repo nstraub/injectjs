@@ -1,4 +1,4 @@
-/*! injectjs - vv0.3.0 - 2016-03-12
+/*! inject-js - vv0.3.0 - 2016-03-16
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -38,8 +38,9 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
 /*----------------------
  -- Injection Methods --
  ----------------------*/
-function _inject (name, parent) {
-    var descriptor, dependency_providers;
+Injector.prototype._inject = function (name, parent) {
+    var descriptor, dependency_providers,
+        _this = this;
     if (typeof name === 'string') {
         descriptor = this.fakes[name] || this.types[name] || this.providers[name];
         if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
@@ -58,19 +59,19 @@ function _inject (name, parent) {
         }
     }
     if (descriptor.provider && descriptor.provider !== parent) {
-        return _inject.call(this, descriptor.provider, name);
+        return this._inject(descriptor.provider, name);
     }
 
     dependency_providers = {};
     _.each(descriptor.dependencies, function (dependency_name) {
-        dependency_providers[dependency_name] = _inject.call(this, dependency_name, name);
+        dependency_providers[dependency_name] = _this._inject(dependency_name, name);
     }, this);
 
     return this.build_provider(name, descriptor, dependency_providers);
-}
+};
 
 Injector.prototype.inject = function (name) {
-    return _inject.call(this, name);
+    return this._inject(name);
 };
 
 Injector.prototype.get = function (name, context, adhoc_dependencies) {
@@ -215,8 +216,8 @@ Injector.prototype._register = function (where, name, type, lifetime) {
         dependencies = get_dependency_names(type);
         realType = type;
     } else {
-        realType = type.pop();
-        dependencies = type;
+        realType = type[type.length -1];
+        dependencies = type.slice(0, type.length - 1);
     }
 
     if (typeof realType !== 'function') {
@@ -251,8 +252,9 @@ Injector.prototype.flushFakes = function () {
     this.fakes = {};
 };
 
-/* globals injector: false */
 /* globals old_injector: false */
+/* globals injector: false */
+/* globals angular: false */
 /* globals window: false */
 /* exported get_dependency_names*/
 
@@ -289,16 +291,8 @@ Injector.prototype.extend = function (parent, child) {
     }
 };
 
-function listener() {
-    injector.clearState();
-}
-
 Injector.prototype.noConflict = function () {
     window.injector = old_injector;
-};
-
-Injector.prototype.removeDefaultListener = function () {
-    window.removeEventListener('hashchange', listener);
 };
 
 /*-------------------
@@ -314,8 +308,24 @@ Injector.prototype.clearState = function () {
     }, this);
 };
 
-//Todo implement so this is de-registered if another form of state change is bound
+var listener = function () {};
+
+if (window.angular && angular.module) {
+    angular.module('injectJS', []).service('$injectJS', [Injector]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
+        $rootScope.$on('$locationChangeStart', function () {
+            $injectJS.clearState();
+        });
+    }]);
+}
+listener = function () {
+    injector.clearState();
+};
+
 window.addEventListener('hashchange', listener);
+
+Injector.prototype.removeDefaultListener = function () {
+    window.removeEventListener('hashchange', listener);
+};
 
 return new Injector();
 }());

@@ -59,8 +59,8 @@ Injector.prototype._register = function (where, name, type, lifetime) {
         dependencies = get_dependency_names(type);
         realType = type;
     } else {
-        realType = type.pop();
-        dependencies = type;
+        realType = type[type.length -1];
+        dependencies = type.slice(0, type.length - 1);
     }
 
     if (typeof realType !== 'function') {

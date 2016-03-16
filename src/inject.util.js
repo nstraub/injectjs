@@ -1,6 +1,7 @@
 /* globals Injector: false */
-/* globals injector: false */
 /* globals old_injector: false */
+/* globals injector: false */
+/* globals angular: false */
 /* globals window: false */
 /* exported get_dependency_names*/
 
@@ -37,16 +38,8 @@ Injector.prototype.extend = function (parent, child) {
     }
 };
 
-function listener() {
-    injector.clearState();
-}
-
 Injector.prototype.noConflict = function () {
     window.injector = old_injector;
-};
-
-Injector.prototype.removeDefaultListener = function () {
-    window.removeEventListener('hashchange', listener);
 };
 
 /*-------------------
@@ -62,5 +55,21 @@ Injector.prototype.clearState = function () {
     }, this);
 };
 
-//Todo implement so this is de-registered if another form of state change is bound
+var listener = function () {};
+
+if (window.angular && angular.module) {
+    angular.module('injectJS', []).service('$injectJS', [Injector]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
+        $rootScope.$on('$locationChangeStart', function () {
+            $injectJS.clearState();
+        });
+    }]);
+}
+listener = function () {
+    injector.clearState();
+};
+
 window.addEventListener('hashchange', listener);
+
+Injector.prototype.removeDefaultListener = function () {
+    window.removeEventListener('hashchange', listener);
+};
