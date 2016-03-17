@@ -2,7 +2,7 @@
 
 a lightweight, small, high level dependency injector with support for object lifetime management
 
-> This software is still not fully baked, at version 0.2, and missing a wealth of functionalities for what constitutes a fully fledged dependency injector
+> This software is still not fully baked, at version 0.3, and missing a wealth of functionalities for what constitutes a fully fledged dependency injector
 
 With that said, I expect to have a fully functional, fully tested, fully decoupled and fully documented version in the next couple of Months. I will greatly appreciate help from early adopters and will gladly embrace feature requests and bug reports uploaded to the issue tracker.
 
@@ -28,7 +28,7 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 		- [injector.getType](#utility-gettype)
 		- [injector.extend](#utility-extend)
 		- [injector.noConflict](#utility-noConflict)
-		- [injector.hide](#utility-hide)
+		- [injector.removeDefaultListener](#utility-removeDefaultListener)
 		- [injector.clearState](#utility-clearState)
 	4. [Test Helpers](#testing)
 		- [injector.registerFake](#testing-fakes)
@@ -377,7 +377,7 @@ Restores the old value of window.injector
 
 injector.noConflict()
 
-### <a name="utility-hide"></a>injector.hide
+### <a name="utility-removeDefaultListener"></a>injector.removeDefaultListener
 
 De-registers `hashchange` event for clearing state lifetime `types`.
 
@@ -385,7 +385,7 @@ De-registers `hashchange` event for clearing state lifetime `types`.
 
 **signature**
 
-injector.hide()
+injector.removeDefaultListener()
 
 ### <a name="utility-clearState"></a>injector.clearState
 
