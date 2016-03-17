@@ -26,8 +26,7 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
  -- Injection Methods --
  ----------------------*/
 Injector.prototype._inject = function (name, parent) {
-    var descriptor, dependency_providers,
-        _this = this;
+    var descriptor, dependency_providers;
     if (typeof name === 'string') {
         descriptor = this.fakes[name] || this.types[name] || this.providers[name];
         if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
@@ -50,9 +49,9 @@ Injector.prototype._inject = function (name, parent) {
     }
 
     dependency_providers = {};
-    _.each(descriptor.dependencies, function (dependency_name) {
-        dependency_providers[dependency_name] = _this._inject(dependency_name, name);
-    }, this);
+    _.each(descriptor.dependencies, _.bind(function (dependency_name) {
+        dependency_providers[dependency_name] = this._inject(dependency_name, name);
+    }, this));
 
     return this.build_provider(name, descriptor, dependency_providers);
 };

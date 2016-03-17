@@ -1,4 +1,4 @@
-/*! inject-js - vv0.3.0 - 2016-03-16
+/*! inject-js - vv0.3.1 - 2016-03-16
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -39,8 +39,7 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
  -- Injection Methods --
  ----------------------*/
 Injector.prototype._inject = function (name, parent) {
-    var descriptor, dependency_providers,
-        _this = this;
+    var descriptor, dependency_providers;
     if (typeof name === 'string') {
         descriptor = this.fakes[name] || this.types[name] || this.providers[name];
         if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
@@ -63,9 +62,9 @@ Injector.prototype._inject = function (name, parent) {
     }
 
     dependency_providers = {};
-    _.each(descriptor.dependencies, function (dependency_name) {
-        dependency_providers[dependency_name] = _this._inject(dependency_name, name);
-    }, this);
+    _.each(descriptor.dependencies, _.bind(function (dependency_name) {
+        dependency_providers[dependency_name] = this._inject(dependency_name, name);
+    }, this));
 
     return this.build_provider(name, descriptor, dependency_providers);
 };
@@ -301,11 +300,11 @@ Injector.prototype.noConflict = function () {
 
 Injector.prototype.clearState = function () {
     this.state = {};
-    _.each(this.types, function (descriptor, key) {
+    _.each(this.types, _.bind(function (descriptor, key) {
         if (descriptor.lifetime === 'state') {
             delete this.cache[key];
         }
-    }, this);
+    }, this));
 };
 
 var listener = function () {};

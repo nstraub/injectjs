@@ -95,7 +95,7 @@ injection_inject_spec = () ->
                     dependencies: null
                     type: test_provider_spy
 
-                
+
 
         afterEach () ->
             injector.fakes = {}
@@ -152,7 +152,7 @@ injection_inject_spec = () ->
         it 'gets a nested provider using caller`s context', () ->
             injector.providers.test_provider.dependencies = ['test_this_provider']
             injector.providers.test_provider.type = (ttp) -> return ttp
-                
+
             provider = injector.inject('test_provider').call(@)
             expect(provider).toBe @
 
