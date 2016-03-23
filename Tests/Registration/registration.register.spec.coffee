@@ -32,6 +32,9 @@ registration_register_spec = () ->
     it 'throws an error when last item in type array isn`t a function', () ->
         expect(() -> injector.registerType('no type', ['test dependency'])).toThrow 'no type was passed'
 
+    it 'throws an error when type isn`t a function nor an array', () ->
+        expect(() -> injector.registerType('no type', 'invalid type')).toThrow 'type must be a function or an array'
+
     it 'throws an error when an invalid where is passed', () ->
         expect(() -> injector._register('invalid where', 'test type', @test_type)).toThrow 'invalid destination "invalid where" provided. Valid destinations are types, providers, fakes and main'
 
@@ -79,3 +82,32 @@ registration_register_spec = () ->
 
             injector.registerType 'test type', @test_type, 'singleton'
             expect(injector.types['test type']).toEqual @test_result
+
+    describe 'using $inject property', () ->
+        it 'registers type names correctly', () ->
+            @test_type = (a, b) ->
+            @test_type.$inject = ['test_dependency', 'test_dependency_2']
+            @test_result.type = @test_type
+            @test_result.dependencies = ['test_dependency', 'test_dependency_2']
+            @test_result.lifetime = 'singleton'
+
+            injector.registerType 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result
+
+        it 'throws an error when both array notation and the $inject property are present', () ->
+            @test_type = (a, b) ->
+
+            array_notation = ['test_dependency', 'test_dependency_2', @test_type]
+            array_notation.$inject = ['test_dependency', 'test_dependency_2']
+
+            expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrow(
+              'passed type cannot have both array notation and the $inject property populated')
+
+        it 'throws an error when both array notation and Type.$inject property are present', () ->
+            @test_type = (a, b) ->
+            @test_type.$inject = ['test_dependency', 'test_dependency_2']
+
+            array_notation = ['test_dependency', 'test_dependency_2', @test_type]
+
+            expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrow(
+              'passed type cannot have both array notation and the $inject property populated')

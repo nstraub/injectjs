@@ -20,6 +20,7 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 		- [injector.registerType](#registration-type)
 		- [injector.registerProvider](#registration-provider)
 		- [injector.registerMain](#registration-main)
+		- [$inject property](#registration-$inject)
 	2. [Injection Methods](#injection)
 		- [injector.get](#injection-get)
 		- [injector.inject](#injection-inject)
@@ -233,6 +234,18 @@ Allows you to register the provider that gets invoked when `injector.run()` is c
   
 > **Note**: type MUST be an array if you plan to minify your code 
 
+### <a name="registration-$inject"></a> $inject property
+
+As an alternative to array notation, you can specify your dependencies as an array in Type.$inject
+
+**example**
+    
+    var type = function (dependency) { 
+       this.hello = dependency
+    }
+    
+    type.$inject = ['dependency']
+    injector.registerType('my-test-type', type, 'singleton'); 
 
 ## <a name="injection"></a>Injection Methods
 

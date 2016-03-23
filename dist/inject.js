@@ -1,4 +1,4 @@
-/*! inject-js - vv0.3.1 - 2016-03-16
+/*! inject-js - vv0.3.2 - 2016-03-22
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -212,11 +212,17 @@ Injector.prototype._register = function (where, name, type, lifetime) {
     if (!type) {
         throw 'no type was passed';
     } else if (typeof type === 'function') {
-        dependencies = get_dependency_names(type);
+        dependencies = type.$inject || get_dependency_names(type);
         realType = type;
-    } else {
+    } else if (Array.isArray(type)){
         realType = type[type.length -1];
+
+        if (type.$inject || realType.$inject) {
+            throw 'passed type cannot have both array notation and the $inject property populated';
+        }
         dependencies = type.slice(0, type.length - 1);
+    } else {
+        throw 'type must be a function or an array';
     }
 
     if (typeof realType !== 'function') {
