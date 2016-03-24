@@ -1,4 +1,4 @@
-/*! inject-js - vv0.3.2 - 2016-03-22
+/*! inject-js - vv0.3.3 - 2016-03-23
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -103,7 +103,7 @@ function map_dependencies(dependency_providers, adhoc_dependencies) {
         if (!provider) {
             throw 'There is no dependency named "' + key + '" registered.';
         }
-        return provider.call(_this);
+        return provider.call(_this, adhoc_dependencies);
     });
 }
 
@@ -214,7 +214,7 @@ Injector.prototype._register = function (where, name, type, lifetime) {
     } else if (typeof type === 'function') {
         dependencies = type.$inject || get_dependency_names(type);
         realType = type;
-    } else if (Array.isArray(type)){
+    } else if (Array.isArray(type)) {
         realType = type[type.length -1];
 
         if (type.$inject || realType.$inject) {

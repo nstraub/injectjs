@@ -15,7 +15,7 @@ function map_dependencies(dependency_providers, adhoc_dependencies) {
         if (!provider) {
             throw 'There is no dependency named "' + key + '" registered.';
         }
-        return provider.call(_this);
+        return provider.call(_this, adhoc_dependencies);
     });
 }
 

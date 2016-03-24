@@ -12,14 +12,14 @@ lifetimes_transient_spec = () ->
 
         expect(first_test_instance.transient_test).not.toBe second_test_instance.transient_test
 
-    describe 'parametrized types', () ->
+    describe 'parameterized types', () ->
         beforeEach () ->
             injector.types =
-                test_parametrized_type:
+                test_parameterized_type:
                     type: (@adhoc_dependency) -> return
                     dependencies: ['adhoc_dependency']
                     lifetime: 'transient'
-                test_parametrized_ordered_type:
+                test_parameterized_ordered_type:
                     type: (@f,@e,@c,@d,@b,@a) -> return
                     dependencies: ['f','e','c','d','b','a']
                     lifetime: 'transient'
@@ -36,13 +36,13 @@ lifetimes_transient_spec = () ->
                     dependencies: null
 
         it 'injects adhoc dependency at instantiation time', () ->
-            test = injector.inject 'test_parametrized_type'
+            test = injector.inject 'test_parameterized_type'
             result = test(adhoc_dependency: 'test dependency')
 
             expect(result.adhoc_dependency).toBe 'test dependency'
 
         it 'maintains proper dependency order', () ->
-            test = injector.inject 'test_parametrized_ordered_type'
+            test = injector.inject 'test_parameterized_ordered_type'
             result = test({b:2,d:4,f:6})
 
             expect(result.f).toBe 6
@@ -52,3 +52,15 @@ lifetimes_transient_spec = () ->
             expect(result.b).toBe 2
             expect(result.a).toBe 1
 
+        it 'passes ad-hoc dependencies up the dependency tree', () ->
+            injector.types.parent_adhoc_type =
+                type: (@test_parameterized_type, @test_parameterized_orderd_type) -> return
+                dependencies: ['test_parameterized_type', 'test_parameterized_ordered_type']
+                lifetime: 'transient'
+
+            test_provider = injector.inject 'parent_adhoc_type'
+
+            result = test_provider({b:2,d:4,f:6,adhoc_dependency: 'test dependency'})
+
+            expect(result.test_parameterized_orderd_type).toBeInstanceOf(injector.types.test_parameterized_ordered_type.type)
+            expect(result.test_parameterized_type).toBeInstanceOf(injector.types.test_parameterized_type.type)
