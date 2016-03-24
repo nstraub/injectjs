@@ -25,17 +25,8 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
 /*----------------------
  -- Injection Methods --
  ----------------------*/
-Injector.prototype._inject = function (name, parent) {
-    var descriptor, dependency_providers;
-    if (typeof name === 'string') {
-        descriptor = this.fakes[name] || this.types[name] || this.providers[name];
-        if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
-            return this.cache[name];
-        }
-
-    } else {
-        descriptor = this.build_anonymous_descriptor(name);
-    }
+Injector.prototype._inject = function (name, descriptor, parent, root) {
+    var dependency_providers;
 
     if (!descriptor) {
         if (parent) {
@@ -44,20 +35,39 @@ Injector.prototype._inject = function (name, parent) {
             throw 'There is no dependency named "' + name + '" registered.';
         }
     }
+
+    if (this.cache[descriptor.name + ':' + root] && this.cache[descriptor.name + ':' + root].hashCode === descriptor.hashCode) {
+        return this.cache[descriptor.name + ':' + root];
+    }
+
+    if (!parent) {
+        this.roots[++this.currentHashCode] = {};
+    }
+
     if (descriptor.provider && descriptor.provider !== parent) {
-        return this._inject(descriptor.provider, name);
+        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root || this.currentHashCode);
     }
 
     dependency_providers = {};
+    var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        dependency_providers[dependency_name] = this._inject(dependency_name, name);
+        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root || this.currentHashCode);
+        if (dependency_providers[dependency_name]) {
+            dependency_providers[dependency_name + counter++] = provider;
+        } else {
+            dependency_providers[dependency_name] = provider;
+        }
     }, this));
 
-    return this.build_provider(name, descriptor, dependency_providers);
+    return this.build_provider(descriptor.name, descriptor, dependency_providers, root);
+};
+
+Injector.prototype.getDescriptor = function (name) {
+    return typeof name === 'string' ? this.fakes[name] || this.types[name] || this.providers[name] : this.build_anonymous_descriptor(name);
 };
 
 Injector.prototype.inject = function (name) {
-    return this._inject(name);
+    return this._inject(name, this.getDescriptor(name));
 };
 
 Injector.prototype.get = function (name, context, adhoc_dependencies) {

@@ -48,9 +48,16 @@ Injector.prototype.noConflict = function () {
 
 Injector.prototype.clearState = function () {
     this.state = {};
+    var _this = this;
     _.each(this.types, _.bind(function (descriptor, key) {
         if (descriptor.lifetime === 'state') {
-            delete this.cache[key];
+            Object.keys(this.cache).forEach(function (name) {
+                "use strict";
+                if (~name.indexOf(key)) {
+                    delete _this.cache[name];
+                }
+            });
+
         }
     }, this));
 };

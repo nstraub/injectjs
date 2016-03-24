@@ -38,6 +38,7 @@ injection_inject_spec = () ->
 
             injector.providers =
                 test_provider:
+                    name: 'test_provider'
                     dependencies: ['test_type']
                     type: test_provider_spy
                     hashCode: 2
@@ -127,21 +128,27 @@ injection_inject_spec = () ->
                     dependencies: null
                     type: test_provider_dependency_stub
                 test_this_provider:
+                    name: 'test_this_provider'
                     type: () -> return @
                     dependencies: null
                 test_parametrized_provider:
+                    name: 'test_parametrized_provider'
                     type: (test_provider_dependency, adhoc_dependency) -> return [test_provider_dependency, adhoc_dependency]
                     dependencies: ['test_provider_dependency', 'adhoc_dependency']
                 a:
+                    name: 'a'
                     type: () -> return 1;
                     dependencies: null
                 c:
+                    name: 'c'
                     type: () -> return 3;
                     dependencies: null
                 e:
+                    name: 'e'
                     type: () -> return 5;
                     dependencies: null
                 test_parametrized_ordered_provider:
+                    name: 'test_parametrized_ordered_provider'
                     type: (f,e,c,d,b,a) -> return [f,e,d,c,b,a]
                     dependencies: ['f','e','c','d','b','a']
 

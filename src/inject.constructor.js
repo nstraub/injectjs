@@ -7,3 +7,7 @@ function Injector() {
 }
 
 Injector.prototype.DEFAULT_LIFETIME = 'transient';
+
+Injector.prototype.cache = {};
+
+Injector.prototype.roots = {};

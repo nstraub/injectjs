@@ -12,55 +12,18 @@ lifetimes_transient_spec = () ->
 
         expect(first_test_instance.transient_test).not.toBe second_test_instance.transient_test
 
-    describe 'parameterized types', () ->
-        beforeEach () ->
-            injector.types =
-                test_parameterized_type:
-                    type: (@adhoc_dependency) -> return
-                    dependencies: ['adhoc_dependency']
-                    lifetime: 'transient'
-                test_parameterized_ordered_type:
-                    type: (@f,@e,@c,@d,@b,@a) -> return
-                    dependencies: ['f','e','c','d','b','a']
-                    lifetime: 'transient'
+    it 'allows multiple instances of the same type to be injected into one dependant', () ->
+        injector.types.multiple_instances =
+            name: 'multiple_instances'
+            type: (@a, @b) -> return
+            dependencies: ['transient_test', 'transient_test']
+            lifetime: 'transient'
 
-            injector.providers =
-                a:
-                    type: () -> return 1;
-                    dependencies: null
-                c:
-                    type: () -> return 3;
-                    dependencies: null
-                e:
-                    type: () -> return 5;
-                    dependencies: null
+        instance = injector.get('multiple_instances')
 
-        it 'injects adhoc dependency at instantiation time', () ->
-            test = injector.inject 'test_parameterized_type'
-            result = test(adhoc_dependency: 'test dependency')
+        expect(instance.a).toBeDefined()
+        expect(instance.b).toBeDefined()
+        expect(instance.a).not.toBe(instance.b)
 
-            expect(result.adhoc_dependency).toBe 'test dependency'
 
-        it 'maintains proper dependency order', () ->
-            test = injector.inject 'test_parameterized_ordered_type'
-            result = test({b:2,d:4,f:6})
-
-            expect(result.f).toBe 6
-            expect(result.e).toBe 5
-            expect(result.d).toBe 4
-            expect(result.c).toBe 3
-            expect(result.b).toBe 2
-            expect(result.a).toBe 1
-
-        it 'passes ad-hoc dependencies up the dependency tree', () ->
-            injector.types.parent_adhoc_type =
-                type: (@test_parameterized_type, @test_parameterized_orderd_type) -> return
-                dependencies: ['test_parameterized_type', 'test_parameterized_ordered_type']
-                lifetime: 'transient'
-
-            test_provider = injector.inject 'parent_adhoc_type'
-
-            result = test_provider({b:2,d:4,f:6,adhoc_dependency: 'test dependency'})
-
-            expect(result.test_parameterized_orderd_type).toBeInstanceOf(injector.types.test_parameterized_ordered_type.type)
-            expect(result.test_parameterized_type).toBeInstanceOf(injector.types.test_parameterized_type.type)
+    describe 'ad-hoc dependencies', get_adhoc_dependency_tests('transient')
