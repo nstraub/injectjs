@@ -26,7 +26,7 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
  -- Injection Methods --
  ----------------------*/
 Injector.prototype._inject = function (name, descriptor, parent, root) {
-    var dependency_providers;
+    var dependency_providers, template, _this = this;
 
     if (!descriptor) {
         if (parent) {
@@ -36,22 +36,35 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }
 
-    if ((descriptor.lifetime === 'singleton' || descriptor.lifetime === 'state') && this.cache[descriptor.name] && this.cache[descriptor.name].hashCode === descriptor.hashCode) {
-        return this.cache[descriptor.name];
+    name = descriptor.name;
+
+    template = {};
+
+    template.hashCode = ++this.currentHashCode;
+    template.descriptor = descriptor;
+    template.parent = parent || null;
+    template.root = root || template;
+
+    if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
+        if (root) {
+            return this.cache[name];
+        } else {
+            return function (adhoc_dependencies) {
+                return _this.cache[name](adhoc_dependencies, template);
+            }
+        }
     }
 
-    if (!(parent || root)) {
-        root = ++this.currentHashCode;
-    }
-    
-    if (descriptor.provider && descriptor.provider !== parent) {
-        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root);
+    root = template.root;
+
+    if (descriptor.provider && (!parent || descriptor.provider !== parent.descriptor.name)) {
+        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), template, root);
     }
 
     dependency_providers = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root);
+        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), template, root);
         if (dependency_providers[dependency_name]) {
             dependency_providers[dependency_name + counter++] = provider;
         } else {
@@ -59,8 +72,9 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }, this));
 
-    var provider = this.build_provider(descriptor.name, descriptor, dependency_providers, root);
-    return provider;
+    template.providers = dependency_providers;
+
+    return this.build_provider(template);
 };
 
 Injector.prototype.getDescriptor = function (name) {
@@ -73,10 +87,7 @@ Injector.prototype.inject = function (name) {
 
 Injector.prototype.get = function (name, context, adhoc_dependencies) {
     var provider = this.inject(name);
-    if (context) {
-        return provider.call(context, adhoc_dependencies);
-    }
-    return provider(adhoc_dependencies);
+    return context ? provider.call(context, adhoc_dependencies) : provider(adhoc_dependencies);
 };
 
 Injector.prototype.run = function (context, adhoc_dependencies) {

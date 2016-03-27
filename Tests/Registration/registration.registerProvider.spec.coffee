@@ -1,6 +1,6 @@
 registration_register_provider_spec = () ->
     beforeEach () ->
-        delete @test_result.lifetime
+        @test_result.lifetime = undefined;
 
     it 'registers a provider', () ->
         injector.registerProvider 'test type', @test_type

@@ -11,8 +11,6 @@ function assertLifetime (lifetime) {
     }
 }
 
-Injector.prototype.currentHashCode = 1;
-
 Injector.prototype.registerType = function (name, type, lifetime, provider) {
     lifetime = lifetime || this.DEFAULT_LIFETIME;
 
@@ -45,9 +43,11 @@ Injector.prototype.registerFake = function (name, type, lifetime) {
 Injector.prototype._register = function (where, name, type, lifetime) {
     var realType, dependencies, destination;
 
-    if (typeof (destination = this[where]) === 'undefined') {
-        throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers, fakes and main';
+    if (!(where === 'types' || where === 'providers' || where === 'fakes')) {
+        throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers and fakes';
     }
+
+    destination = this[where];
 
     if (typeof name !== 'string' || name === '') {
         throw 'Type must have a name';
@@ -73,14 +73,11 @@ Injector.prototype._register = function (where, name, type, lifetime) {
         throw 'no type was passed';
     }
 
-    var result = {
+    destination[name] = {
         name: name,
         type: realType,
         dependencies: dependencies,
+        lifetime: lifetime,
         hashCode: this.currentHashCode++
     };
-    if (lifetime) {
-        result.lifetime = lifetime;
-    }
-    destination[name] = result;
 };

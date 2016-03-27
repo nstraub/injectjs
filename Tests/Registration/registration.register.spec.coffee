@@ -39,7 +39,7 @@ registration_register_spec = () ->
         expect(() -> injector.registerType('no type', 'invalid type')).toThrow 'type must be a function or an array'
 
     it 'throws an error when an invalid where is passed', () ->
-        expect(() -> injector._register('invalid where', 'test type', @test_type)).toThrow 'invalid destination "invalid where" provided. Valid destinations are types, providers, fakes and main'
+        expect(() -> injector._register('invalid where', 'test type', @test_type)).toThrow 'invalid destination "invalid where" provided. Valid destinations are types, providers and fakes'
 
     describe 'without a dependency array', () ->
         it 'registers dependencies for a type with one dependency', () ->

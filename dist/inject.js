@@ -16,6 +16,8 @@ Injector.prototype.cache = {};
 
 Injector.prototype.roots = {};
 
+Injector.prototype.currentHashCode = 1;
+
 /* globals window: false */
 /* exported lifetimes */
 /* exported old_injector */
@@ -43,7 +45,7 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
  -- Injection Methods --
  ----------------------*/
 Injector.prototype._inject = function (name, descriptor, parent, root) {
-    var dependency_providers;
+    var dependency_providers, template;
 
     if (!descriptor) {
         if (parent) {
@@ -53,22 +55,29 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }
 
-    if ((descriptor.lifetime === 'singleton' || descriptor.lifetime === 'state') && this.cache[descriptor.name] && this.cache[descriptor.name].hashCode === descriptor.hashCode) {
-        return this.cache[descriptor.name];
+    name = descriptor.name;
+
+    if ((descriptor.lifetime === 'singleton' || descriptor.lifetime === 'state') && this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
+        return this.cache[name];
     }
 
-    if (!(parent || root)) {
-        root = ++this.currentHashCode;
-    }
-    
-    if (descriptor.provider && descriptor.provider !== parent) {
-        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root);
+    template = {};
+
+    template.hashCode = ++this.currentHashCode;
+    template.descriptor = descriptor;
+    template.parent = parent || null;
+    template.root = root || template;
+
+    root = template.root;
+
+    if (descriptor.provider && (!parent || descriptor.provider !== parent.descriptor.name)) {
+        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), template, root);
     }
 
     dependency_providers = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root);
+        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), template, root);
         if (dependency_providers[dependency_name]) {
             dependency_providers[dependency_name + counter++] = provider;
         } else {
@@ -76,8 +85,9 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }, this));
 
-    var provider = this.build_provider(descriptor.name, descriptor, dependency_providers, root);
-    return provider;
+    template.providers = dependency_providers;
+
+    return this.build_provider(template);
 };
 
 Injector.prototype.getDescriptor = function (name) {
@@ -90,10 +100,7 @@ Injector.prototype.inject = function (name) {
 
 Injector.prototype.get = function (name, context, adhoc_dependencies) {
     var provider = this.inject(name);
-    if (context) {
-        return provider.call(context, adhoc_dependencies);
-    }
-    return provider(adhoc_dependencies);
+    return context ? provider.call(context, adhoc_dependencies) : provider(adhoc_dependencies);
 };
 
 Injector.prototype.run = function (context, adhoc_dependencies) {
@@ -125,85 +132,91 @@ function map_dependencies(dependency_providers, adhoc_dependencies) {
 }
 
 var createObject = Object.create;
-Injector.prototype.provide_transient = function (type, dependency_providers) {
+Injector.prototype.provide_transient = function (template) {
+    var type = template.descriptor.type,
+        dependency_providers = template.providers;
+
     return function (adhoc_dependencies) {
         var instance = createObject(type.prototype);
 
-        type.apply(instance, map_dependencies(dependency_providers, adhoc_dependencies));
+        type.apply(instance, map_dependencies.call(this, dependency_providers, adhoc_dependencies));
         return instance;
     };
 };
-Injector.prototype.provide_singleton = function (name, type, dependency_providers, singleton_cache) {
-    if (!singleton_cache[name]) {
-        var dependency_to_cache = this.provide_transient(type, dependency_providers);
-        singleton_cache[name] = function (adhoc_dependencies) {
+Injector.prototype.provide_cached = function (template, cache) {
+    var name = template.descriptor.name;
+
+    if (!cache[name]) {
+        var dependency_to_cache = this.provide_transient(template);
+        cache[name] = function (adhoc_dependencies) {
             var cached;
             if (typeof dependency_to_cache === 'function') {
                 dependency_to_cache = dependency_to_cache(adhoc_dependencies);
                 cached = function () {
                     return dependency_to_cache;
                 };
-                cached.hashCode = singleton_cache[name].hashCode;
-                singleton_cache[name] = cached;
+                cached.hashCode = cache[name].hashCode;
+                cache[name] = cached;
             }
             return dependency_to_cache;
         };
     }
-    return singleton_cache[name];
+    return cache[name];
 };
 
-Injector.prototype.provide_root = function (name, type, dependency_providers, root) {
-    if (!this.roots[root]) {
-        this.roots[root] = {};
-    }
-    return _.bind(function (adhoc_dependencies) {
-        if (!this.roots[root][name]) {
-            this.roots[root][name] = this.provide_transient(type, dependency_providers)(adhoc_dependencies);
-        }
-        return this.roots[root][name];
-    }, this);
-};
+Injector.prototype.provide_root = function (template) {
+    var name = template.descriptor.name,
+        roots = template.root.roots = template.root.roots || {},
+        _this = this;
 
-Injector.prototype.provide_provider = function(dependency_providers, type) {
     return function (adhoc_dependencies) {
-        var dependencies = map_dependencies.call(this, dependency_providers, adhoc_dependencies);
-        return type.apply(this, dependencies);
+        if (!roots[name]) {
+            roots[name] = _this.provide_transient(template)(adhoc_dependencies);
+        }
+        return roots[name];
+    };
+};
+
+Injector.prototype.provide_provider = function(template) {
+    return function (adhoc_dependencies) {
+        var dependencies = map_dependencies.call(this, template.providers, adhoc_dependencies);
+        return template.descriptor.type.apply(this, dependencies);
     };
 };
 
 (function () {
     var singletons = {};
-    Injector.prototype.build_provider = function (name, descriptor, dependency_providers, root) {
-        var item;
+    Injector.prototype.build_provider = function (template) { // name, descriptor, dependency_providers, root
+        var item,
+            descriptor = template.descriptor,
+            name = descriptor.name;
+
         if (!descriptor.lifetime) {
-            return this.provide_provider(dependency_providers, descriptor.type);
+            return this.provide_provider(template);
         }
         switch (descriptor.lifetime) {
             case 'singleton':
                 if (singletons[name] && singletons[name].hashCode !== descriptor.hashCode) {
                     delete singletons[name];
                 }
-                item = this.provide_singleton(name, descriptor.type, dependency_providers, singletons);
+                item = this.provide_cached(template, singletons);
                 item.hashCode = singletons[name].hashCode = descriptor.hashCode;
                 if (!descriptor.provider) {
                     this.cache[descriptor.name] = item;
                 }
-                break;
+                return item;
             case 'state':
-                item = this.provide_singleton(name, descriptor.type, dependency_providers, this.state);
+                item = this.provide_cached(template, this.state);
                 item.hashCode = descriptor.hashCode;
                 if (!descriptor.provider) {
                     this.cache[descriptor.name] = item;
                 }
-                break;
+                return item;
             case 'root':
-                item = this.provide_root(name, descriptor.type, dependency_providers, root);
-                break;
+                return this.provide_root(template);
             default:
-                item = this.provide_transient(descriptor.type, dependency_providers);
+                return this.provide_transient(template);
         }
-
-        return item;
     };
 }());
 
@@ -216,8 +229,6 @@ function assertLifetime (lifetime) {
         throw 'invalid lifetime "' + lifetime + '" provided. Valid lifetimes are singleton, transient, instance and parent';
     }
 }
-
-Injector.prototype.currentHashCode = 1;
 
 Injector.prototype.registerType = function (name, type, lifetime, provider) {
     lifetime = lifetime || this.DEFAULT_LIFETIME;
@@ -251,9 +262,11 @@ Injector.prototype.registerFake = function (name, type, lifetime) {
 Injector.prototype._register = function (where, name, type, lifetime) {
     var realType, dependencies, destination;
 
-    if (typeof (destination = this[where]) === 'undefined') {
-        throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers, fakes and main';
+    if (!(where === 'types' || where === 'providers' || where === 'fakes')) {
+        throw 'invalid destination "' + where + '" provided. Valid destinations are types, providers and fakes';
     }
+
+    destination = this[where];
 
     if (typeof name !== 'string' || name === '') {
         throw 'Type must have a name';
@@ -279,16 +292,13 @@ Injector.prototype._register = function (where, name, type, lifetime) {
         throw 'no type was passed';
     }
 
-    var result = {
+    destination[name] = {
         name: name,
         type: realType,
         dependencies: dependencies,
+        lifetime: lifetime,
         hashCode: this.currentHashCode++
     };
-    if (lifetime) {
-        result.lifetime = lifetime;
-    }
-    destination[name] = result;
 };
 
 /* global Injector */
@@ -316,6 +326,7 @@ Injector.prototype.flushFakes = function () {
 var get_dependency_names = (function () {
     var dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/;
     var separatorPattern = /, ?/;
+
     return function get_dependency_names(type) {
         var serialized_type = type.toString();
         var serialized_dependencies;
@@ -357,29 +368,29 @@ Injector.prototype.noConflict = function () {
 Injector.prototype.clearState = function () {
     this.state = {};
     var _this = this;
-    _.each(this.types, _.bind(function (descriptor, key) {
+
+    _.each(this.types, function (descriptor, key) {
         if (descriptor.lifetime === 'state') {
-            Object.keys(this.cache).forEach(function (name) {
-                "use strict";
+            Object.keys(_this.cache).forEach(function (name) {
                 if (~name.indexOf(key)) {
                     delete _this.cache[name];
                 }
             });
 
         }
-    }, this));
+    });
 };
-
-var listener = function () {};
 
 if (window.angular && angular.module) {
     angular.module('injectJS', []).service('$injectJS', [Injector]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
         $rootScope.$on('$locationChangeStart', function () {
             $injectJS.clearState();
         });
+        $injectJS.removeDefaultListener();
     }]);
 }
-listener = function () {
+
+var listener = function () {
     injector.clearState();
 };
 

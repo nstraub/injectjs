@@ -168,9 +168,9 @@ describe 'injector', () ->
             it 'creates a different instance of the type for its parents siblings'
             it 'doesn`t interfere with `root` lifetime types'
 
-    ###describe 'caching', () -> -- todo: get caching to work with root lifetime
+    describe 'caching', () -> # todo: get caching to work with root lifetime
         describe 'injection', caching_injection_spec
-        describe 'registration', caching_registration_spec###
+        describe 'registration', caching_registration_spec
 
     describe 'fakes', () ->
         describe 'flushFakes', fakes_flush_fakes_spec

@@ -8,6 +8,7 @@
 var get_dependency_names = (function () {
     var dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/;
     var separatorPattern = /, ?/;
+
     return function get_dependency_names(type) {
         var serialized_type = type.toString();
         var serialized_dependencies;
@@ -49,29 +50,29 @@ Injector.prototype.noConflict = function () {
 Injector.prototype.clearState = function () {
     this.state = {};
     var _this = this;
-    _.each(this.types, _.bind(function (descriptor, key) {
+
+    _.each(this.types, function (descriptor, key) {
         if (descriptor.lifetime === 'state') {
-            Object.keys(this.cache).forEach(function (name) {
-                "use strict";
+            Object.keys(_this.cache).forEach(function (name) {
                 if (~name.indexOf(key)) {
                     delete _this.cache[name];
                 }
             });
 
         }
-    }, this));
+    });
 };
-
-var listener = function () {};
 
 if (window.angular && angular.module) {
     angular.module('injectJS', []).service('$injectJS', [Injector]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
         $rootScope.$on('$locationChangeStart', function () {
             $injectJS.clearState();
         });
+        $injectJS.removeDefaultListener();
     }]);
 }
-listener = function () {
+
+var listener = function () {
     injector.clearState();
 };
 
