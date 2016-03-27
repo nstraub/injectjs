@@ -1,4 +1,6 @@
 injection_run_spec = () ->
+    beforeEach () ->
+        setup.reset_injector()
     it 'runs the main function', () ->
         test_main = sinon.spy()
 

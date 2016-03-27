@@ -1,4 +1,6 @@
 utility_extend_spec = () ->
+    beforeEach () ->
+        setup.reset_injector()
     it 'extends a registered type with passed function', () ->
         injector.types =
             test:

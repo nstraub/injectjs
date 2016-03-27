@@ -28,6 +28,7 @@ module.exports = function (config) {
             'Tests/register.method.js',
             'src/inject.js',
             'Tests/instantiate.injector.coffee',
+            'Tests/_setup/*.coffee',
             'Tests/**/*.spec.coffee',
             'bower_components/sinonjs/sinon.js',
             'bower_components/jasmine-sinon/lib/jasmine-sinon.js'

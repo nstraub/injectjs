@@ -1,5 +1,6 @@
 injection_get_spec = () ->
     beforeEach () ->
+        setup.reset_injector()
         @test_provider = sinon.spy()
 
         injector.types =

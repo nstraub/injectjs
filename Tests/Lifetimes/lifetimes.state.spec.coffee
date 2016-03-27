@@ -1,5 +1,6 @@
 lifetimes_state_spec = () ->
     beforeEach () ->
+        setup.reset_injector()
         injector.types.state_test =
             name: 'state_test'
             type: () -> return

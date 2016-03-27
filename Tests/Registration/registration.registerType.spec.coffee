@@ -1,4 +1,6 @@
 registration_register_type_spec = () ->
+    beforeEach () ->
+        setup.reset_injector(true)
     it 'registers a provided type', () ->
         injector.registerType 'test type', @test_type, 'singleton'
         @test_result.lifetime = 'singleton'

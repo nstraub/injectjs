@@ -1,4 +1,7 @@
 registration_register_spec = () ->
+    beforeEach () ->
+        setup.reset_injector(true)
+
     it 'registers a provided type', () ->
         injector.registerType 'test type', ['test_dependency', @test_type], 'singleton'
         @test_result.dependencies = ['test_dependency']

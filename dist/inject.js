@@ -1,4 +1,4 @@
-/*! inject-js - vv0.3.4 - 2016-03-24
+/*! inject-js - vv0.3.4 - 2016-03-27
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -53,22 +53,22 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }
 
-    if (this.cache[descriptor.name + ':' + root] && this.cache[descriptor.name + ':' + root].hashCode === descriptor.hashCode) {
-        return this.cache[descriptor.name + ':' + root];
+    if ((descriptor.lifetime === 'singleton' || descriptor.lifetime === 'state') && this.cache[descriptor.name] && this.cache[descriptor.name].hashCode === descriptor.hashCode) {
+        return this.cache[descriptor.name];
     }
 
-    if (!parent) {
-        this.roots[++this.currentHashCode] = {};
+    if (!(parent || root)) {
+        root = ++this.currentHashCode;
     }
-
+    
     if (descriptor.provider && descriptor.provider !== parent) {
-        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root || this.currentHashCode);
+        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root);
     }
 
     dependency_providers = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root || this.currentHashCode);
+        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root);
         if (dependency_providers[dependency_name]) {
             dependency_providers[dependency_name + counter++] = provider;
         } else {
@@ -76,7 +76,8 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }, this));
 
-    return this.build_provider(descriptor.name, descriptor, dependency_providers, root);
+    var provider = this.build_provider(descriptor.name, descriptor, dependency_providers, root);
+    return provider;
 };
 
 Injector.prototype.getDescriptor = function (name) {
@@ -101,6 +102,8 @@ Injector.prototype.run = function (context, adhoc_dependencies) {
     }
     return this.get('main', context, adhoc_dependencies);
 };
+
+/* globals _: false */
 
 function map_dependencies(dependency_providers, adhoc_dependencies) {
     var _this = this,
@@ -131,21 +134,36 @@ Injector.prototype.provide_transient = function (type, dependency_providers) {
     };
 };
 Injector.prototype.provide_singleton = function (name, type, dependency_providers, singleton_cache) {
-    var _this = this;
     if (!singleton_cache[name]) {
         var dependency_to_cache = this.provide_transient(type, dependency_providers);
         singleton_cache[name] = function (adhoc_dependencies) {
+            var cached;
             if (typeof dependency_to_cache === 'function') {
                 dependency_to_cache = dependency_to_cache(adhoc_dependencies);
-                _this.cache[name] = singleton_cache[name] = function () {
+                cached = function () {
                     return dependency_to_cache;
                 };
+                cached.hashCode = singleton_cache[name].hashCode;
+                singleton_cache[name] = cached;
             }
             return dependency_to_cache;
         };
     }
     return singleton_cache[name];
 };
+
+Injector.prototype.provide_root = function (name, type, dependency_providers, root) {
+    if (!this.roots[root]) {
+        this.roots[root] = {};
+    }
+    return _.bind(function (adhoc_dependencies) {
+        if (!this.roots[root][name]) {
+            this.roots[root][name] = this.provide_transient(type, dependency_providers)(adhoc_dependencies);
+        }
+        return this.roots[root][name];
+    }, this);
+};
+
 Injector.prototype.provide_provider = function(dependency_providers, type) {
     return function (adhoc_dependencies) {
         var dependencies = map_dependencies.call(this, dependency_providers, adhoc_dependencies);
@@ -156,19 +174,36 @@ Injector.prototype.provide_provider = function(dependency_providers, type) {
 (function () {
     var singletons = {};
     Injector.prototype.build_provider = function (name, descriptor, dependency_providers, root) {
+        var item;
         if (!descriptor.lifetime) {
-            return this.cache[name + ':' + root] = this.provide_provider(dependency_providers, descriptor.type);
+            return this.provide_provider(dependency_providers, descriptor.type);
         }
         switch (descriptor.lifetime) {
             case 'singleton':
-                return this.cache[name + ':' + root] = this.provide_singleton(name, descriptor.type, dependency_providers, singletons);
+                if (singletons[name] && singletons[name].hashCode !== descriptor.hashCode) {
+                    delete singletons[name];
+                }
+                item = this.provide_singleton(name, descriptor.type, dependency_providers, singletons);
+                item.hashCode = singletons[name].hashCode = descriptor.hashCode;
+                if (!descriptor.provider) {
+                    this.cache[descriptor.name] = item;
+                }
+                break;
             case 'state':
-                return this.cache[name + ':' + root] = this.provide_singleton(name, descriptor.type, dependency_providers, this.state);
+                item = this.provide_singleton(name, descriptor.type, dependency_providers, this.state);
+                item.hashCode = descriptor.hashCode;
+                if (!descriptor.provider) {
+                    this.cache[descriptor.name] = item;
+                }
+                break;
             case 'root':
-                return this.provide_singleton(name, descriptor.type, dependency_providers, this.roots[root]);
+                item = this.provide_root(name, descriptor.type, dependency_providers, root);
+                break;
             default:
-                return this.cache[name + ':' + root] = this.provide_transient(descriptor.type, dependency_providers);
+                item = this.provide_transient(descriptor.type, dependency_providers);
         }
+
+        return item;
     };
 }());
 

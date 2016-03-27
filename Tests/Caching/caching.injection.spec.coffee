@@ -1,24 +1,46 @@
 caching_injection_spec = () ->
+    beforeAll () ->
+        setup.reset_injector()
+        setup.assign_base_types()
+        setup.assign_basic_dependent_types()
+
     beforeEach () ->
-        injector.types =
-            test_type:
-                type: () ->
-                dependencies: null
-                lifetime: 'transient'
+        sinon.spy injector,'build_provider'
 
-        injector.providers =
-            test_provider:
-                type: () ->
-                dependencies: null
+    afterEach () ->
+        injector.build_provider.restore()
 
-    it 'caches injected types', () ->
-        first_injector = injector.inject('test_type')
-        second_injector = injector.inject('test_type')
+    describe 'basic dependency-less caching', () ->
+        for lifetime in ['state', 'singleton', 'transient']
+            do (lifetime) ->
+                type = 'base_' + lifetime + '_type'
+                it 'caches ' + type, () ->
+                    first_type = injector.inject(type)()
 
-        expect(first_injector).toBe second_injector
+                    second_type = injector.inject(type)()
 
-    it 'caches injected providers', () ->
-        first_injector = injector.inject('test_provider')
-        second_injector = injector.inject('test_provider')
+                    third_type = injector.inject(type)()
 
-        expect(first_injector).toBe second_injector
+                    expect(first_type).toBeInstanceOf injector.getType(type)
+                    expect(second_type).toBeInstanceOf injector.getType(type)
+                    expect(third_type).toBeInstanceOf injector.getType(type)
+
+                    expect(injector.build_provider).toHaveBeenCalledOnce()
+
+    describe 'basic one-level dependency caching', () ->
+        for lifetime in ['state', 'singleton', 'transient']
+            for dependency_lifetime in ['state', 'singleton', 'transient']
+                do (lifetime, dependency_lifetime) ->
+                    type = lifetime + '_depends_on_' + dependency_lifetime
+                    it 'caches ' + type, () ->
+                        first_type = injector.inject(type)()
+
+                        second_type = injector.inject(type)()
+
+                        third_type = injector.inject(type)()
+
+                        expect(first_type).toBeInstanceOf injector.getType(type)
+                        expect(second_type).toBeInstanceOf injector.getType(type)
+                        expect(third_type).toBeInstanceOf injector.getType(type)
+
+                        expect(injector.build_provider).toHaveBeenCalledOnce()

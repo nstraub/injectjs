@@ -36,22 +36,22 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }
 
-    if (this.cache[descriptor.name + ':' + root] && this.cache[descriptor.name + ':' + root].hashCode === descriptor.hashCode) {
-        return this.cache[descriptor.name + ':' + root];
+    if ((descriptor.lifetime === 'singleton' || descriptor.lifetime === 'state') && this.cache[descriptor.name] && this.cache[descriptor.name].hashCode === descriptor.hashCode) {
+        return this.cache[descriptor.name];
     }
 
-    if (!parent) {
-        this.roots[++this.currentHashCode] = {};
+    if (!(parent || root)) {
+        root = ++this.currentHashCode;
     }
-
+    
     if (descriptor.provider && descriptor.provider !== parent) {
-        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root || this.currentHashCode);
+        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), descriptor.name, root);
     }
 
     dependency_providers = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root || this.currentHashCode);
+        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), descriptor.name, root);
         if (dependency_providers[dependency_name]) {
             dependency_providers[dependency_name + counter++] = provider;
         } else {
@@ -59,7 +59,8 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }, this));
 
-    return this.build_provider(descriptor.name, descriptor, dependency_providers, root);
+    var provider = this.build_provider(descriptor.name, descriptor, dependency_providers, root);
+    return provider;
 };
 
 Injector.prototype.getDescriptor = function (name) {

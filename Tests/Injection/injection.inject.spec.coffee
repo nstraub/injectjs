@@ -1,84 +1,78 @@
 injection_inject_spec = () ->
-    beforeEach () ->
-        injector.types =
-            test:
-                name: 'test'
-                dependencies: null
-                type: class test_type
-                    constructor: (@test_dependency) ->
-                lifetime: 'transient'
-            test_dependency:
-                name: 'test_dependency'
-                dependencies: null
-                type: class test_dependency
-                lifetime: 'transient'
+    describe 'basic types', () ->
+        beforeAll () ->
+            setup.reset_injector()
+            setup.assign_base_types()
+            setup.assign_basic_dependent_types()
 
-    it 'creates a function that returns an instance of the given type', () ->
-        test = injector.inject 'test'
-        expect(test() instanceof injector.types.test.type).toBeTruthy()
 
-    it 'instantiates a given type`s dependencies', () ->
-        injector.types.test.dependencies = ['test_dependency']
-        test = injector.inject 'test'
-        expect(test().test_dependency instanceof injector.types.test_dependency.type).toBeTruthy()
+        for lifetime in lifetimes
+            do (lifetime) ->
+                it 'creates a function that returns an instance of ' + lifetime, () ->
+                    type = 'base_' + lifetime + '_type'
+                    provider = injector.inject(type)
+                    expect(provider()).toBeInstanceOf(injector.types[type].type)
 
+        for lifetime in lifetimes
+            for dependency_lifetime in lifetimes
+                do (lifetime, dependency_lifetime) ->
+                    it 'instantiates a ' + lifetime + ' type that depends on a ' + dependency_lifetime + ' type', () ->
+                        test = injector.inject lifetime + '_depends_on_' + dependency_lifetime
+                        expect(test().dependency).toBeInstanceOf(injector.types['base_' + dependency_lifetime + '_type'].type)
 
     describe 'passive providers', () ->
-        test_provider_spy = null
-        beforeEach () ->
-            provider_fn = (test_type) -> test_type
-            test_provider_spy = sinon.spy provider_fn
-            injector.types =
-                test_type:
-                    dependencies: null
-                    type: () ->
-                    lifetime: 'transient'
-                    provider: 'test_provider'
-                    hashCode: 1
+        beforeAll () ->
+            setup.reset_injector()
+            setup.assign_passive_types()
 
-            injector.providers =
-                test_provider:
-                    name: 'test_provider'
-                    dependencies: ['test_type']
-                    type: test_provider_spy
-                    hashCode: 2
+        for lifetime in lifetimes
+            do (lifetime) ->
+                it 'uses passive_' + lifetime + '_provider to instantiate passive_' + lifetime + '_type', () ->
+                    provider = injector.inject 'passive_' + lifetime + '_type'
+                    type = provider()
 
-        it 'uses specified provider to instantiate type', () ->
-            provider = injector.inject 'test_type'
-            type = provider()
+                    expect(type).toBeInstanceOf injector.types['passive_' + lifetime + '_type'].type
+                    expect(type.passively_provided).toBeTruthy()
 
-            expect(type).toBeInstanceOf injector.types.test_type.type
-            expect(test_provider_spy).toHaveBeenCalledOnce()
+                it 'caches the passive_' + lifetime + '_provider instead of passive_' + lifetime + '_type', () ->
+                    provider = injector.inject 'passive_' + lifetime + '_type'
+                    type = provider()
 
-            provider = injector.inject 'test_type'
-            type = provider()
+                    expect(type).toBeInstanceOf injector.types['passive_' + lifetime + '_type'].type
+                    expect(type.passively_provided).toBeTruthy()
 
-            expect(test_provider_spy).toHaveBeenCalledTwice()
+                    type.passively_provided = false
 
-        it 'caches the passive provider instead of the type', () ->
-            provider = injector.inject('test_type')()
-            provider = injector.inject 'test_type'
-            type = provider()
+                    provider = injector.inject 'passive_' + lifetime + '_type'
+                    type2 = provider()
 
-            expect(type).toBeInstanceOf injector.types.test_type.type
-            expect(test_provider_spy).toHaveBeenCalledTwice()
+                    expect(type2).toBeInstanceOf injector.types['passive_' + lifetime + '_type'].type
+                    expect(type).toBe(type2) if lifetime in ['singleton', 'state']
+                    expect(type2.passively_provided).toBeTruthy()
 
 
     describe 'anonymous types', () ->
-        it 'injects dependencies into a function descriptor', () ->
-            adhoc_function = (dependency) -> return dependency
-            descriptor = ['test_dependency', adhoc_function]
+        beforeAll () ->
+            setup.reset_injector()
+            setup.assign_base_types()
 
-            adhoc_function_provider = injector.inject descriptor
+        for lifetime in lifetimes
+            do (lifetime) ->
+                it 'injects base_' + lifetime + '_type into an ad-hoc function descriptor', () ->
+                    adhoc_function = (dependency) -> return dependency
+                    descriptor = ['base_' + lifetime + '_type', adhoc_function]
 
-            expect(adhoc_function_provider()).toBeInstanceOf injector.types.test_dependency.type
+                    adhoc_function_provider = injector.inject descriptor
 
-        it 'injects dependencies into a function without a descriptor', () ->
-            adhoc_function = (test_dependency) -> return test_dependency
+                    expect(adhoc_function_provider()).toBeInstanceOf injector.types['base_' + lifetime + '_type'].type
 
-            adhoc_function_provider = injector.inject adhoc_function
+                    return
+            it 'injects base_' + lifetime + '_type into a function without a descriptor', () ->
+                eval ('adhoc_function = function (base_' + lifetime + '_type) { return base_' + lifetime + '_type; }')
 
-            expect(adhoc_function_provider()).toBeInstanceOf injector.types.test_dependency.type
+                adhoc_function_provider = injector.inject adhoc_function
+
+                expect(adhoc_function_provider()).toBeInstanceOf injector.types['base_' + lifetime + '_type'].type
 
     describe 'fakes', () ->
         test_provider_spy = null
@@ -90,11 +84,13 @@ injection_inject_spec = () ->
                     dependencies: null
                     type: () ->
                     lifetime: 'transient'
+                    hashCode: setup.next_hash()
             injector.providers =
                 test_provider:
                     name: 'test_provider'
                     dependencies: null
                     type: test_provider_spy
+                    hashCode: setup.next_hash()
 
 
 
@@ -115,6 +111,7 @@ injection_inject_spec = () ->
         test_provider_dependency_stub = null
 
         beforeEach () ->
+            setup.reset_injector()
             test_provider_spy = sinon.spy()
             test_provider_dependency_stub = sinon.stub()
             test_provider_dependency_stub.returns('test')
