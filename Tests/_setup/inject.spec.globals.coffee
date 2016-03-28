@@ -1,4 +1,4 @@
-lifetimes = ['transient', 'root', 'state', 'singleton']
+lifetimes = ['transient', 'root', 'state', 'singleton', 'parent']
 
 get_adhoc_dependency_tests = (lifetime) ->
     () ->

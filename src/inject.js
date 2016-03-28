@@ -46,13 +46,9 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     template.root = root || template;
 
     if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
-        if (root) {
-            return this.cache[name];
-        } else {
-            return function (adhoc_dependencies) {
-                return _this.cache[name](adhoc_dependencies, template);
-            }
-        }
+        return function (adhoc_dependencies, current_template) {
+            return _this.cache[name](adhoc_dependencies, current_template || template);
+        };
     }
 
     root = template.root;

@@ -3,7 +3,7 @@ caching_injection_spec = () ->
         setup.reset_injector()
         setup.assign_base_types()
         setup.assign_basic_dependent_types()
-        sinon.spy injector,'build_provider'
+        sinon.spy injector, 'build_provider'
 
     afterEach () ->
         injector.build_provider.restore()

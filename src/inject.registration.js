@@ -16,6 +16,10 @@ Injector.prototype.registerType = function (name, type, lifetime, provider) {
 
     assertLifetime(lifetime);
 
+    if (lifetime === 'singleton' && this.cache[name]) {
+        throw 'you cannot re-register a singleton that has already been instantiated';
+    }
+    
     this._register('types', name, type, lifetime);
 
     if (provider) {
