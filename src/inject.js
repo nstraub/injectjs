@@ -8,7 +8,7 @@ var lifetimes = ['singleton', 'transient', 'root', 'parent', 'state'];
 
 var old_injector = window.injector;
 
-Injector.prototype.build_anonymous_descriptor = function (name) { // for when inject is called with an anonymous function
+Injector.prototype._build_anonymous_descriptor = function (name) { // for when inject is called with an anonymous function
     if (typeof name === 'function') {
         return {
             type: name,
@@ -16,8 +16,8 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
         };
     } else {
         return {
-            type: name.pop(),
-            dependencies: name
+            type: name[name.length-1],
+            dependencies: name.slice(0, name.length-1)
         };
     }
 };
@@ -54,13 +54,13 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     root = template.root;
 
     if (descriptor.provider && (!parent || descriptor.provider !== parent.descriptor.name)) {
-        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), template, root);
+        return this._inject(descriptor.provider, this._get_descriptor(descriptor.provider), template, root);
     }
 
     dependency_providers = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), template, root);
+        var provider = this._inject(dependency_name, this._get_descriptor(dependency_name), template, root);
         if (dependency_providers[dependency_name]) {
             dependency_providers[dependency_name + counter++] = provider;
         } else {
@@ -70,15 +70,15 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
 
     template.providers = dependency_providers;
 
-    return this.build_provider(template);
+    return this._build_provider(template);
 };
 
-Injector.prototype.getDescriptor = function (name) {
-    return typeof name === 'string' ? this.fakes[name] || this.types[name] || this.providers[name] : this.build_anonymous_descriptor(name);
+Injector.prototype._get_descriptor = function (name) {
+    return typeof name === 'string' ? this.fakes[name] || this.types[name] || this.providers[name] : this._build_anonymous_descriptor(name);
 };
 
 Injector.prototype.inject = function (name) {
-    return this._inject(name, this.getDescriptor(name));
+    return this._inject(name, this._get_descriptor(name));
 };
 
 Injector.prototype.get = function (name, context, adhoc_dependencies) {

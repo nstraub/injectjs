@@ -1,6 +1,3 @@
-/**
- * Created by pelan on 11/03/2016.
- */
 /* global Injector */
 Injector.prototype.harness = function (func) {
     var _this = this;

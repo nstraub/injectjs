@@ -1,4 +1,4 @@
-/*! inject-js - vv0.3.4 - 2016-03-28
+/*! inject-js - vv0.3.4 - 2016-03-29
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -27,7 +27,7 @@ var lifetimes = ['singleton', 'transient', 'root', 'parent', 'state'];
 
 var old_injector = window.injector;
 
-Injector.prototype.build_anonymous_descriptor = function (name) { // for when inject is called with an anonymous function
+Injector.prototype._build_anonymous_descriptor = function (name) { // for when inject is called with an anonymous function
     if (typeof name === 'function') {
         return {
             type: name,
@@ -35,8 +35,8 @@ Injector.prototype.build_anonymous_descriptor = function (name) { // for when in
         };
     } else {
         return {
-            type: name.pop(),
-            dependencies: name
+            type: name[name.length-1],
+            dependencies: name.slice(0, name.length-1)
         };
     }
 };
@@ -73,13 +73,13 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     root = template.root;
 
     if (descriptor.provider && (!parent || descriptor.provider !== parent.descriptor.name)) {
-        return this._inject(descriptor.provider, this.getDescriptor(descriptor.provider), template, root);
+        return this._inject(descriptor.provider, this._get_descriptor(descriptor.provider), template, root);
     }
 
     dependency_providers = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this.getDescriptor(dependency_name), template, root);
+        var provider = this._inject(dependency_name, this._get_descriptor(dependency_name), template, root);
         if (dependency_providers[dependency_name]) {
             dependency_providers[dependency_name + counter++] = provider;
         } else {
@@ -89,15 +89,15 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
 
     template.providers = dependency_providers;
 
-    return this.build_provider(template);
+    return this._build_provider(template);
 };
 
-Injector.prototype.getDescriptor = function (name) {
-    return typeof name === 'string' ? this.fakes[name] || this.types[name] || this.providers[name] : this.build_anonymous_descriptor(name);
+Injector.prototype._get_descriptor = function (name) {
+    return typeof name === 'string' ? this.fakes[name] || this.types[name] || this.providers[name] : this._build_anonymous_descriptor(name);
 };
 
 Injector.prototype.inject = function (name) {
-    return this._inject(name, this.getDescriptor(name));
+    return this._inject(name, this._get_descriptor(name));
 };
 
 Injector.prototype.get = function (name, context, adhoc_dependencies) {
@@ -134,23 +134,23 @@ function map_dependencies(dependency_providers, adhoc_dependencies, current_temp
     });
 }
 
-var createObject = Object.create;
-Injector.prototype.provide_transient = function (template) {
+var create_object = Object.create;
+Injector.prototype._provide_transient = function (template) {
     var type = template.descriptor.type,
         dependency_providers = template.providers;
 
     return function (adhoc_dependencies, current_template) {
-        var instance = createObject(type.prototype);
+        var instance = create_object(type.prototype);
 
         type.apply(instance, map_dependencies.call(this, dependency_providers, adhoc_dependencies, current_template));
         return instance;
     };
 };
-Injector.prototype.provide_cached = function (template, cache) {
+Injector.prototype._provide_cached = function (template, cache) {
     var name = template.descriptor.name;
 
     if (!cache[name]) {
-        var dependency_to_cache = this.provide_transient(template);
+        var dependency_to_cache = this._provide_transient(template);
         cache[name] = function (adhoc_dependencies) {
             var cached;
             if (typeof dependency_to_cache === 'function') {
@@ -167,7 +167,7 @@ Injector.prototype.provide_cached = function (template, cache) {
     return cache[name];
 };
 
-Injector.prototype.provide_root = function (template) {
+Injector.prototype._provide_root = function (template) {
     var name = template.descriptor.name,
         roots = template.root.roots = template.root.roots || {},
         _this = this;
@@ -177,20 +177,20 @@ Injector.prototype.provide_root = function (template) {
             roots = current_template.root.roots = current_template.root.roots || {};
         }
         if (!roots[name]) {
-            roots[name] = _this.provide_transient(template)(adhoc_dependencies, current_template);
+            roots[name] = _this._provide_transient(template)(adhoc_dependencies, current_template);
         }
         return roots[name];
     };
 };
 
-Injector.prototype.provide_provider = function(template) {
+Injector.prototype._provide_provider = function(template) {
     return function (adhoc_dependencies, current_template) {
         var dependencies = map_dependencies.call(this, template.providers, adhoc_dependencies, current_template);
         return template.descriptor.type.apply(this, dependencies);
     };
 };
 
-Injector.prototype.provide_parent = function (template) {
+Injector.prototype._provide_parent = function (template) {
     var _this = this;
 
     return function (adhoc_dependencies, current_template) {
@@ -214,7 +214,7 @@ Injector.prototype.provide_parent = function (template) {
         var dependency_name = template.descriptor.name;
         if (!parent_template.children[dependency_name] || parent_template.children[dependency_name] === 'building') {
             parent_template.children[dependency_name] = 'building';
-            parent_template.children[dependency_name] = _this.provide_transient(template)(adhoc_dependencies, template);
+            parent_template.children[dependency_name] = _this._provide_transient(template)(adhoc_dependencies, template);
         }
         return parent_template.children[dependency_name];
     };
@@ -230,31 +230,30 @@ Injector.prototype.provide_parent = function (template) {
             }
         });
     }
-    Injector.prototype.build_provider = function (template) {
+    Injector.prototype._build_provider = function (template) {
         var item,
             descriptor = template.descriptor,
-            name = descriptor.name;
+            name = descriptor.name,
+            provider_name,
+            cache = null;
 
         if (!descriptor.lifetime) {
-            item = this.provide_provider(template);
+            provider_name = 'provide_provider';
         } else {
             switch (descriptor.lifetime) {
                 case 'singleton':
-                    item = this.provide_cached(template, singletons);
+                    provider_name = 'provide_cached';
+                    cache = singletons;
                     break;
                 case 'state':
-                    item = this.provide_cached(template, this.state);
-                    break;
-                case 'root':
-                    item = this.provide_root(template);
-                    break;
-                case 'parent':
-                    item = this.provide_parent(template);
+                    provider_name = 'provide_cached';
+                    cache = this.state;
                     break;
                 default:
-                    item = this.provide_transient(template);
+                    provider_name = 'provide_' + descriptor.lifetime;
             }
         }
+        item = this['_' + provider_name](template, cache);
         if (name && !descriptor.provider) {
             item.hashCode = descriptor.hashCode;
             this.cache[descriptor.name] = item;
@@ -263,7 +262,6 @@ Injector.prototype.provide_parent = function (template) {
     };
 }());
 
-/* globals Injector: false */
 /* globals lifetimes: false */
 /* globals get_dependency_names*/
 
@@ -281,7 +279,7 @@ Injector.prototype.registerType = function (name, type, lifetime, provider) {
     if (lifetime === 'singleton' && this.cache[name]) {
         throw 'you cannot re-register a singleton that has already been instantiated';
     }
-    
+
     this._register('types', name, type, lifetime);
 
     if (provider) {
@@ -348,7 +346,6 @@ Injector.prototype._register = function (where, name, type, lifetime) {
     };
 };
 
-/* global Injector */
 Injector.prototype.harness = function (func) {
     var _this = this;
     return function (adhoc_dependencies) {

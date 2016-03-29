@@ -3,10 +3,10 @@ caching_injection_spec = () ->
         setup.reset_injector()
         setup.assign_base_types()
         setup.assign_basic_dependent_types()
-        sinon.spy injector, 'build_provider'
+        sinon.spy injector, '_build_provider'
 
     afterEach () ->
-        injector.build_provider.restore()
+        injector._build_provider.restore()
 
     describe 'basic dependency-less caching', () ->
         for lifetime in lifetimes
@@ -23,7 +23,7 @@ caching_injection_spec = () ->
                     expect(second_type).toBeInstanceOf injector.getType(type)
                     expect(third_type).toBeInstanceOf injector.getType(type)
 
-                    expect(injector.build_provider).toHaveBeenCalledOnce()
+                    expect(injector._build_provider).toHaveBeenCalledOnce()
 
     describe 'basic one-level dependency caching', () ->
         for lifetime in lifetimes
@@ -41,4 +41,4 @@ caching_injection_spec = () ->
                         expect(second_type).toBeInstanceOf injector.getType(type)
                         expect(third_type).toBeInstanceOf injector.getType(type)
 
-                        expect(injector.build_provider).toHaveBeenCalledTwice()
+                        expect(injector._build_provider).toHaveBeenCalledTwice()
