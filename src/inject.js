@@ -25,8 +25,28 @@ Injector.prototype._build_anonymous_descriptor = function (name) { // for when i
 /*----------------------
  -- Injection Methods --
  ----------------------*/
+function _assert_circular_references(template, dependencies, path) {
+    var parent, name, parent_name;
+    parent = template.parent;
+    if (!parent) {
+        return;
+    }
+
+    name = template.descriptor.name;
+    parent_name = parent.descriptor.name;
+    path.unshift(name);
+
+    if (parent.descriptor.provider !== name && ~dependencies.indexOf(parent_name)) {
+        throw 'Circular Reference Detected: ' +
+            parent_name + ' -> ' +
+            path.join(' -> ') +
+            ' -> ' + parent_name;
+    }
+    _assert_circular_references(parent, dependencies, path);
+}
+
 Injector.prototype._inject = function (name, descriptor, parent, root) {
-    var dependency_providers, template, _this = this;
+    var dependency_providers, template, _this = this, provider_name;
 
     if (!descriptor) {
         if (parent) {
@@ -51,10 +71,15 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         };
     }
 
+    if (root && descriptor.dependencies) {
+        _assert_circular_references(template, descriptor.dependencies, []);
+    }
+
     root = template.root;
 
-    if (descriptor.provider && (!parent || descriptor.provider !== parent.descriptor.name)) {
-        return this._inject(descriptor.provider, this._get_descriptor(descriptor.provider), template, root);
+    provider_name = descriptor.provider;
+    if (provider_name && (!parent || provider_name !== parent.descriptor.name)) {
+        return this._inject(provider_name, this._get_descriptor(provider_name), template, root);
     }
 
     dependency_providers = {};

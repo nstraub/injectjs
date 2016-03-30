@@ -41,6 +41,7 @@ describe 'injector', () ->
     describe 'noConflict', utility_no_conflict_spec
 
     describe 'injection', () ->
+        describe 'circular references', circular_reference_spec
         describe 'get', injection_get_spec
 
         describe 'inject', injection_inject_types_spec
