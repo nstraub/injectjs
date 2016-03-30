@@ -3,37 +3,31 @@ lifetimes = ['transient', 'root', 'state', 'singleton', 'parent']
 get_adhoc_dependency_tests = (lifetime) ->
     () ->
         beforeEach () ->
-            setup.reset_injector()
-            injector.types =
-                test_type:
-                    name: 'test_type'
-                    type: (@adhoc_dependency) -> return
-                    dependencies: ['adhoc_dependency']
-                    lifetime: lifetime
-                    hashCode: setup.next_hash()
-                ordered_test_type:
-                    name: 'ordered_test_type'
-                    type: (@f, @e, @c, @d, @b, @a) -> return
-                    dependencies: ['f', 'e', 'c', 'd', 'b', 'a']
-                    lifetime: lifetime
-                    hashCode: setup.next_hash()
+            setup.reset_injector_cache()
+            setup.make_descriptor
+                name: 'test_type'
+                type: (@adhoc_dependency) -> return
+                dependencies: ['adhoc_dependency']
+                lifetime: lifetime
+            setup.make_descriptor
+                name: 'ordered_test_type'
+                type: (@f, @e, @c, @d, @b, @a) -> return
+                dependencies: ['f', 'e', 'c', 'd', 'b', 'a']
+                lifetime: lifetime
 
-            injector.providers =
-                a:
-                    name: 'a'
-                    type: () -> return 1;
-                    dependencies: null
-                    hashCode: setup.next_hash()
-                c:
-                    name: 'c'
-                    type: () -> return 3;
-                    dependencies: null
-                    hashCode: setup.next_hash()
-                e:
-                    name: 'e'
-                    type: () -> return 5;
-                    dependencies: null
-                    hashCode: setup.next_hash()
+
+            setup.make_descriptor
+                target: 'providers'
+                name: 'a'
+                type: () -> return 1
+            setup.make_descriptor
+                target: 'providers'
+                name: 'c'
+                type: () -> return 3
+            setup.make_descriptor
+                target: 'providers'
+                name: 'e'
+                type: () -> return 5
 
         it 'injects ad-hoc dependency at instantiation time', () ->
             test = injector.inject 'test_type'

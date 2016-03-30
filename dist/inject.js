@@ -1,4 +1,4 @@
-/*! inject-js - vv0.3.4 - 2016-03-29
+/*! inject-js - vv0.3.4 - 2016-03-30
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -394,10 +394,12 @@ Injector.prototype.getType = function (name) {
 
 Injector.prototype.extend = function (parent, child) {
     var parent_type = this.types[parent];
-    if (parent_type) {
-        child.prototype = this.get(parent);
-    } else {
+    if (!parent_type) {
         throw 'No type "' + parent + '" found.';
+    } else if (parent_type.lifetime !== 'transient') {
+        throw 'Only transient lifetime types are allowed for now';
+    } else {
+        child.prototype = this.get(parent);
     }
 };
 

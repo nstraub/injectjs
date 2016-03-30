@@ -1,16 +1,11 @@
 caching_registration_spec = () ->
-    beforeEach () ->
-        injector.types.test_type =
-            hashCode: 0
-            lifetime: 'transient'
-            type: () -> return
-            dependencies: null
-        injector.types.singleton_test_type =
+    beforeAll () ->
+        setup.make_descriptor
+            name: 'test_type'
+        setup.make_descriptor
             name: 'singleton_test_type'
-            hashCode: 1
             lifetime: 'singleton'
-            type: () -> return
-            dependencies: null
+
     it 'clears cached dependency for type name', () ->
         test_type_provider = injector.inject('test_type')
 

@@ -1,6 +1,6 @@
 registration_register_fake_spec = () ->
     beforeEach () ->
-        setup.reset_injector(true)
+        setup.reset_injector()
     it 'registers a provided fake', () ->
         injector.registerFake 'test type', @test_type, 'singleton'
         @test_result.lifetime = 'singleton'

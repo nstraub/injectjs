@@ -1,6 +1,6 @@
 registration_register_main_spec = () ->
     beforeEach () ->
-        setup.reset_injector(true)
+        setup.reset_injector()
     it 'registers the main entry point', () ->
         injector.registerMain @test_type
         @test_result.name = 'main';
