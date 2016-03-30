@@ -2,7 +2,7 @@
 
 a lightweight, small, high level dependency injector with support for object lifetime management
 
-> This software is still not fully baked, at version 0.3, and missing a wealth of functionalities for what constitutes a fully fledged dependency injector
+> This software is still not fully baked, at version 0.4, and missing a wealth of functionalities for what constitutes a fully fledged dependency injector
 
 With that said, I expect to have a fully functional, fully tested, fully decoupled and fully documented version in the next couple of Months. I will greatly appreciate help from early adopters and will gladly embrace feature requests and bug reports uploaded to the issue tracker.
 
@@ -50,7 +50,9 @@ RequireJS is a wonderful modularization framework, but it is not a dependency in
 
 # <a name="install"></a>Installation
 
-simply download inject.js or inject.min.js from the dist folder and include it into your html page(s), in that order.
+Simply download inject.js or inject.min.js from the dist folder and include it into your html page(s), in that order.
+
+You can also install it using npm `npm install inject-js`
 
 > **Note:** As of version 0.3 InjectJS includes a grunt build process to lint, test, merge and minify all the code into a single inject.js file (and an inject.min.js file, of course). If you want to tinker about with the different aspects of the library simply clone it and look into the src dir. 
 
@@ -63,7 +65,7 @@ InjectJS comes with a test suite that fully unit-tests the code. to run it, do t
 1. clone the repository (or download and extract the auto-generated zip)
 2. run npm install
 3. run bower install
-4. there are three karma config files in Tests: karma.conf.js (runs tests against src), karma.dist.conf.js (runs tests against dist/inject.js) and karma.dist.min.conf.js (runs tests against dist/inject.min.js). The default grunt task only runs karma.conf.js, running `grunt deploy` will run all tests on all browsers and both dist files. 
+4. there are three karma config files in Tests: karma.conf.js (runs tests against src), karma.dist.conf.js (runs tests against dist/inject.js) and karma.dist.min.conf.js (runs tests against dist/inject.min.js). The default grunt task will watch the `src` folder and run all tests on all browsers and both dist files. 
 
 # <a name="use"></a>Usage 
 
@@ -131,7 +133,7 @@ So let's complicate things a bit...
 
 # <a name="road"></a>Roadmap
 
-The current version, 0.3, has the following features:
+The current version, 0.4, has the following features:
 
 - [registering types](#registration-type)
 - [registering providers](#registration-provider)
@@ -140,21 +142,48 @@ The current version, 0.3, has the following features:
 - [passive providers](#registration-type-provider)
 - [provider parameters (aka ad hoc dependencies)](#injection-get-adhoc) 
 - [injecting types into methods](#injection-inject)
-- Singleton, Transient and State lifetimes.
-- test facilities: [fakes](#testing-fakes) and [harnesses](#testing-harness)
+- [Singleton, Transient, Root, Parent and State lifetimes](#lifetime).
+- Test facilities: [fakes](#testing-fakes) and [harnesses](#testing-harness)
 - Code modularization and Grunt build process.
 
 To sum it up, it provides basic dependency injection capabilities and the ability to use these dependencies in a test environment.
 
 So here are the next planned releases:
 
-
-- 0.4 Root and parent lifetimes.
 - 0.5 Preprocessor for dealing with minifiers.
 - 0.6 abstract types
 - 0.7 Property injection.
 - 0.8 Method injection (currying).
 
+# <a name="lifetime"></a>Object Lifetime Management
+
+> **Note:** for a more comprehensive explanation of object lifetime you can visit the [Wikipedia article](https://en.wikipedia.org/wiki/Object_lifetime)
+
+The main selling point of a DI framework is it manages your objects' lifetime - namely when objects get instantiated and when they get destroyed - so you don't have to.
+As far as I know, JavaScript doesn't have a DI framework that provides this feature, which is why this library is being developed.
+
+Every object in your application gets instantiated at some point, and destroyed at some other. there are objects that last for the entire lifecycle of the app and others that get instantiated each and every time you need to use it. In between are a few other lifetimes that restrict the scope of the object they define. Here's a list of lifetimes supported by `inject-js`, in order of their scope restriction:
+
+## Singleton
+
+The most typical lifetime used in JS is singleton. Think of a module in ES6, an angular service or the jQuery library. Only one instance of the defined type is created throughout the entire page lifecycle.
+ 
+## State
+
+The state lifetime is like a singleton, but for a specific state of your application. By default, `inject-js` recognizes the `hashchange` event as a change of state, and clears all state objects when the hash portion of a site is changed. You can change this behaviour by registering the `clearState` method to a custom event and clear the default behaviour by calling the `removeDefaultListener` method.
+An example of this lifetime would be a data-set. Suppose you have a blog with different tags. The homepage shows a data-set of all your blog entries and whe the user clicks on a tag, the data-set gets replaced with a list scoped to the particular selection.
+  
+## Root
+
+Every object has a dependency graph, i.e. a hierarchy of objects it depends on to perform its desired task. The root lifetime allows you to specify dependencies that will be created once for the entire graph of an object which is not a dependency of another object, and will be reused for every dependency that requires an instance of it.
+ 
+## Parent
+
+Like root but specified at an arbitrary point in the dependency graph.
+
+## Transient
+
+This lifetime creates an instance of the object every time it is injected into another object.
 
 # <a name="api"></a>API reference
 
@@ -266,8 +295,6 @@ gets a registered type or provider. Not recommended for use other than to replac
 - <a name="injection-get-adhoc"></a>*ad hoc dependencies (object): optional.* An array of dependencies to be passed right before a provider is invoked. Useful for providers that require information specific to the environment where/when they are being invoked. Dependencies in the passed object supersede any dependencies defined via the register methods.
 
 > **Note:** `context` is only relevant if you're planning on invoking a provider. when instantiating a type, this parameter has no use (unless the type specifies a passive provider, in which case said provider will run using `context` as `this`).
-
-> **Note:** ad hoc dependencies are available only for providers (for now).
   
 > **Note:** type **MUST** be an array if you plan to minify your code 
 
@@ -344,8 +371,6 @@ runs the main function.
 - *ad hoc dependencies (object): optional.* An array of dependencies to be passed right before a provider is invoked. Useful for providers that require information specific to the environment where/when they are being invoked. Dependencies in the passed object supersede any dependencies defined via the register methods.
 
 > **Note:** `context` is only relevant if you're planning on invoking a provider. when instantiating a type, this parameter has no use (unless the type specifies a passive provider, in which case said provider will run using `context` as `this`).
-
-> **Note:** ad hoc dependencies are available only for providers (for now).
 
 **throws error when no main function is registered**
 
