@@ -50,6 +50,20 @@ injection_inject_types_spec = () ->
                     expect(type).toBe(type2) if lifetime in ['singleton', 'state']
                     expect(type2.passively_provided).toBeTruthy()
 
+                it 'allows the passive provider to be an anonymous function', () ->
+                    provider = injector.inject 'passive_' + lifetime + '_type_with_anon_provider'
+                    type = provider()
+
+                    expect(type).toBeInstanceOf injector.types['passive_' + lifetime + '_type_with_anon_provider'].type
+                    expect(type.passively_provided).toBeTruthy()
+
+                it 'allows the passive provider to be an array with an anonymous function', () ->
+                    provider = injector.inject 'passive_' + lifetime + '_type_with_anon_array'
+                    type = provider()
+
+                    expect(type).toBeInstanceOf injector.types['passive_' + lifetime + '_type_with_anon_array'].type
+                    expect(type.passively_provided).toBeTruthy()
+
 
     describe 'anonymous types', () ->
         beforeAll () ->

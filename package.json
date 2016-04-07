@@ -1,6 +1,6 @@
 {
   "name": "inject-js",
-  "version": "v0.4.4",
+  "version": "0.4.8",
   "description": "lightweight, small, high level dependency injector with object lifetime management",
   "main": "dist/inject.js",
   "files": ["dist"],

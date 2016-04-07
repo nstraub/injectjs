@@ -49,19 +49,14 @@ Injector.prototype.noConflict = function () {
  -------------------*/
 
 Injector.prototype.clearState = function () {
-    this.state = {};
     var _this = this;
 
-    _.each(this.types, function (descriptor, key) {
-        if (descriptor.lifetime === 'state') {
-            Object.keys(_this.cache).forEach(function (name) {
-                if (~name.indexOf(key)) {
-                    delete _this.cache[name];
-                }
-            });
-
+    _.each(this.state, function (provider, key) {
+        if (_this.cache[key]) {
+            delete _this.cache[key];
         }
     });
+    this.state = {};
 };
 
 var injector = new Injector();

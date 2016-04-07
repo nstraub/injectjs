@@ -52,6 +52,22 @@ setup =
                 provider: 'passive_' + lifetime + '_provider'
             )
             @make_descriptor(
+                name: 'passive_' + lifetime + '_type_with_anon_provider'
+                lifetime: lifetime
+                provider: (type) ->
+                    type.passively_provided = true
+                    return type
+            )
+            @make_descriptor(
+                name: 'passive_' + lifetime + '_type_with_anon_array'
+                lifetime: lifetime
+                provider: ['type', (type) ->
+                    type.passively_provided = true
+                    return type
+                ]
+            )
+
+            @make_descriptor(
                 target: 'providers'
                 name: 'passive_' + lifetime + '_provider'
                 type: (type) ->

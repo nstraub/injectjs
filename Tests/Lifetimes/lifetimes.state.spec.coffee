@@ -17,4 +17,15 @@ lifetimes_state_spec = () ->
             expect(second_singleton_instance).toBeInstanceOf injector.getType('base_state_type')
             expect(first_singleton_instance).not.toBe second_singleton_instance
 
+        for lifetime in ['transient', 'root', 'state']
+            do (lifetime) ->
+                it 'gets new state provider on cached ' + lifetime + ' objects', () ->
+                    first = injector.get lifetime + '_depends_on_state'
+                    injector.clearState()
+
+                    second = null
+                    expect(() -> second = injector.get lifetime + '_depends_on_state').not.toThrow()
+
+                    expect(first.dependency).not.toBe(second.dependency)
+
     describe 'ad-hoc dependencies', get_adhoc_dependency_tests('state')

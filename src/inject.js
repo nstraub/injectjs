@@ -32,11 +32,16 @@ function _assert_circular_references(template, dependencies, path) {
         return;
     }
 
-    name = template.descriptor.name;
+    name = template.descriptor.name || template.descriptor.type;
     parent_name = parent.descriptor.name;
     path.unshift(name);
 
-    if (parent.descriptor.provider !== name && ~dependencies.indexOf(parent_name)) {
+    var provider = parent.descriptor.provider;
+    if (_.isArray(provider)) {
+        provider = provider[provider.length - 1];
+    }
+
+    if (provider !== name && ~dependencies.indexOf(parent_name)) {
         throw 'Circular Reference Detected: ' +
             parent_name + ' -> ' +
             path.join(' -> ') +
@@ -56,21 +61,21 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
         }
     }
 
-    name = descriptor.name;
-
     template = {};
 
     template.hashCode = ++this.currentHashCode;
     template.descriptor = descriptor;
     template.parent = parent || null;
     template.root = root || template;
+    name = descriptor.name;
 
     if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
         return function (adhoc_dependencies, current_template) {
-            return _this.cache[name].call(this, adhoc_dependencies, current_template || template);
+            var item = _this.cache[name] || _this.inject(name);
+            return item.call(this, adhoc_dependencies, current_template || template);
         };
     }
-    
+
     if (root && descriptor.dependencies) {
         _assert_circular_references(template, descriptor.dependencies, []);
     }
@@ -78,8 +83,18 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     root = template.root;
 
     provider_name = descriptor.provider;
-    if (provider_name && (!parent || provider_name !== parent.descriptor.name)) {
-        return this._inject(provider_name, this._get_descriptor(provider_name), template, root);
+
+    if (provider_name) {
+        if (_.isArray(provider_name)) {
+            provider_name = provider_name[provider_name.length - 1];
+        }
+        if (!parent || provider_name !== parent.descriptor[(typeof provider_name === 'string' ? 'name' : 'type')]) {
+            var provider_descriptor = this._get_descriptor(descriptor.provider);
+            provider_descriptor.dependencies.shift();
+            provider_descriptor.dependencies.unshift(name);
+
+            return this._inject(provider_name, provider_descriptor, template, root);
+        }
     }
 
     dependency_providers = {};
