@@ -1,6 +1,8 @@
 /* globals Injector: false */
 /* globals _: false */
+/* globals window: false */
 /* globals jasmine: false */
+
 
 function map_dependencies(dependency_providers, adhoc_dependencies, current_template) {
     var _this = this,
@@ -110,7 +112,7 @@ Injector.prototype._provide_parent = function (template) {
 
 (function () {
     var singletons = {};
-    if (jasmine && jasmine.getEnv) {
+    if (window['jasmine'] && jasmine.getEnv) {
         jasmine.getEnv().addReporter({
             specStarted: function () {
                 singletons = {};

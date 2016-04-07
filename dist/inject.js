@@ -1,4 +1,4 @@
-/*! inject-js - vv0.4.0 - 2016-04-06
+/*! inject-js - vv0.4.1 - 2016-04-06
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -138,7 +138,9 @@ Injector.prototype.run = function (context, adhoc_dependencies) {
 };
 
 /* globals _: false */
+/* globals window: false */
 /* globals jasmine: false */
+
 
 function map_dependencies(dependency_providers, adhoc_dependencies, current_template) {
     var _this = this,
@@ -248,7 +250,7 @@ Injector.prototype._provide_parent = function (template) {
 
 (function () {
     var singletons = {};
-    if (jasmine && jasmine.getEnv) {
+    if (window['jasmine'] && jasmine.getEnv) {
         jasmine.getEnv().addReporter({
             specStarted: function () {
                 singletons = {};
