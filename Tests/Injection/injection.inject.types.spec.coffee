@@ -105,4 +105,3 @@ injection_inject_types_spec = () ->
     it 'throws an error when provided dependency name isn`t registered', () ->
         expect(() ->
             injector.inject('nonexistent')).toThrow 'There is no dependency named "nonexistent" registered.'
-

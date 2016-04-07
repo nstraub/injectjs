@@ -1,5 +1,5 @@
 injection_get_spec = () ->
-    beforeEach () ->
+    beforeAll () ->
         setup.reset_injector()
         setup.assign_context_dependent_types()
 
@@ -8,8 +8,9 @@ injection_get_spec = () ->
         expect(result).toBe @
 
     for lifetime in lifetimes
-        do (lifetime) ->
-            it lifetime + ' passes context up dependency tree', ->
-                type = injector.get lifetime + '_provides_context', @
+        for dependency_lifetime in lifetimes when dependency_lifetime isnt 'singleton' and dependency_lifetime isnt 'state'
+            do (lifetime, dependency_lifetime) ->
+                it lifetime + ' passes context up ' + dependency_lifetime + ' dependency tree', ->
+                    type = injector.get lifetime + '_provides_context_through_' + dependency_lifetime, @
 
-                expect(type.dependency).toBe(@)
+                    expect(type.dependency.dependency).toBe(@)

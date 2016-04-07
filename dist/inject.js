@@ -1,4 +1,4 @@
-/*! inject-js - vv0.4.1 - 2016-04-06
+/*! inject-js - vv0.4.3 - 2016-04-06
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -86,10 +86,10 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
 
     if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
         return function (adhoc_dependencies, current_template) {
-            return _this.cache[name](adhoc_dependencies, current_template || template);
+            return _this.cache[name].call(this, adhoc_dependencies, current_template || template);
         };
     }
-
+    
     if (root && descriptor.dependencies) {
         _assert_circular_references(template, descriptor.dependencies, []);
     }
@@ -178,10 +178,11 @@ Injector.prototype._provide_cached = function (template, cache) {
 
     if (!cache[name]) {
         var dependency_to_cache = this._provide_transient(template);
+
         cache[name] = function (adhoc_dependencies) {
             var cached;
             if (typeof dependency_to_cache === 'function') {
-                dependency_to_cache = dependency_to_cache(adhoc_dependencies);
+                dependency_to_cache = dependency_to_cache.call(this, adhoc_dependencies);
                 cached = function () {
                     return dependency_to_cache;
                 };
@@ -204,7 +205,7 @@ Injector.prototype._provide_root = function (template) {
             roots = current_template.root.roots = current_template.root.roots || {};
         }
         if (!roots[name]) {
-            roots[name] = _this._provide_transient(template)(adhoc_dependencies, current_template);
+            roots[name] = _this._provide_transient(template).call(this, adhoc_dependencies, current_template);
         }
         return roots[name];
     };
@@ -241,7 +242,7 @@ Injector.prototype._provide_parent = function (template) {
         var dependency_name = template.descriptor.name;
         if (!parent_template.children[dependency_name] || parent_template.children[dependency_name] === 'building') {
             parent_template.children[dependency_name] = 'building';
-            parent_template.children[dependency_name] = _this._provide_transient(template)(adhoc_dependencies, template);
+            parent_template.children[dependency_name] = _this._provide_transient(template).call(this, adhoc_dependencies, template);
         }
         return parent_template.children[dependency_name];
     };

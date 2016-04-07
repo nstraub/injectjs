@@ -67,10 +67,10 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
 
     if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
         return function (adhoc_dependencies, current_template) {
-            return _this.cache[name](adhoc_dependencies, current_template || template);
+            return _this.cache[name].call(this, adhoc_dependencies, current_template || template);
         };
     }
-
+    
     if (root && descriptor.dependencies) {
         _assert_circular_references(template, descriptor.dependencies, []);
     }
