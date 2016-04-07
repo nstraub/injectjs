@@ -13,9 +13,9 @@ module.exports = function(grunt) {
     // Task configuration.
     concat: {
       options: {
-        banner: '<%= banner %>\'use strict\';\nvar injector = (function () {\n',
+        banner: '<%= banner %>\'use strict\';\nvar injector = (function (_) {\n',
         stripBanners: true,
-        footer: '\nreturn new Injector();\n}());'
+        footer: '\nreturn injector;\n}(_));'
       },
       dist: {
         src: ['src/*.js', '!src/require.shim.js'],

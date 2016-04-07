@@ -1,6 +1,5 @@
 /* globals Injector: false */
 /* globals old_injector: false */
-/* globals injector: false */
 /* globals angular: false */
 /* globals window: false */
 /* exported get_dependency_names*/
@@ -65,8 +64,10 @@ Injector.prototype.clearState = function () {
     });
 };
 
+var injector = new Injector();
+
 if (window.angular && angular.module) {
-    angular.module('injectJS', []).service('$injectJS', [Injector]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
+    angular.module('injectJS', []).factory('$injectJS', [function () { return injector; }]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
         $rootScope.$on('$locationChangeStart', function () {
             $injectJS.clearState();
         });

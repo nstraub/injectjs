@@ -1,8 +1,8 @@
-/*! inject-js - vv0.3.4 - 2016-03-30
+/*! inject-js - vv0.4.0 - 2016-04-06
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
-var injector = (function () {
+var injector = (function (_) {
 function Injector() {
     this.types = {};
     this.providers = {};
@@ -387,7 +387,6 @@ Injector.prototype.flushFakes = function () {
 };
 
 /* globals old_injector: false */
-/* globals injector: false */
 /* globals angular: false */
 /* globals window: false */
 /* exported get_dependency_names*/
@@ -452,8 +451,10 @@ Injector.prototype.clearState = function () {
     });
 };
 
+var injector = new Injector();
+
 if (window.angular && angular.module) {
-    angular.module('injectJS', []).service('$injectJS', [Injector]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
+    angular.module('injectJS', []).factory('$injectJS', [function () { return injector; }]).run(['$rootScope', '$injectJS', function ($rootScope, $injectJS) {
         $rootScope.$on('$locationChangeStart', function () {
             $injectJS.clearState();
         });
@@ -471,5 +472,5 @@ Injector.prototype.removeDefaultListener = function () {
     window.removeEventListener('hashchange', listener);
 };
 
-return new Injector();
-}());
+return injector;
+}(_));
