@@ -1,4 +1,4 @@
-/*! inject-js - vv0.4.3 - 2016-04-06
+/*! inject-js - vv0.4.3 - 2016-04-07
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -348,7 +348,7 @@ Injector.prototype._register = function (where, name, type, lifetime) {
     if (!type) {
         throw 'no type was passed';
     } else if (typeof type === 'function') {
-        dependencies = type.$inject || get_dependency_names(type);
+        dependencies = type.$inject || type.prototype.$inject || get_dependency_names(type);
         realType = type;
     } else if (Array.isArray(type)) {
         realType = type[type.length -1];

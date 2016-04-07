@@ -114,3 +114,15 @@ registration_register_spec = () ->
 
             expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrow(
               'passed type cannot have both array notation and the $inject property populated')
+
+        it 'looks for $inject in the prototype as well', () ->
+            class @test_type
+                $inject: ['test_dependency', 'test_dependency_2']
+                constructor: (a, b) ->
+
+            @test_result.type = @test_type
+            @test_result.dependencies = ['test_dependency', 'test_dependency_2']
+            @test_result.lifetime = 'singleton'
+
+            injector.registerType 'test type', @test_type, 'singleton'
+            expect(injector.types['test type']).toEqual @test_result
