@@ -40,6 +40,7 @@ setup =
 
     assign_base_providers: () ->
         @make_descriptor(target: 'providers', name: 'base_provider')
+        @make_descriptor(target: 'providers', name: 'provider_returns_context', type: () -> @)
 
         return
 
@@ -72,3 +73,8 @@ setup =
                 )
 
         return
+
+    assign_context_dependent_types: () ->
+        @assign_base_providers()
+        for lifetime in lifetimes
+            @make_descriptor(name: lifetime + '_provides_context', dependencies: ['provider_returns_context'], type: (@dependency) -> return)
