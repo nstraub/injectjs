@@ -13,3 +13,5 @@ Injector.prototype.cache = {};
 Injector.prototype.roots = {};
 
 Injector.prototype.currentHashCode = 1;
+
+Injector.prototype.strict_dependency_providers = true;

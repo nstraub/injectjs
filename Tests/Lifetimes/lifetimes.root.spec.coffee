@@ -25,8 +25,7 @@ lifetimes_root_spec = () ->
     it 'creates one instance of the type per root invocation of the inject function', () ->
         first = injector.inject('base_type')
         second = injector.inject('second_level_dependency2')
-        debugger;
-
+        
         first = first()
         second = second()
 

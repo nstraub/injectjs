@@ -119,3 +119,16 @@ injection_inject_types_spec = () ->
     it 'throws an error when provided dependency name isn`t registered', () ->
         expect(() ->
             injector.inject('nonexistent')).toThrow 'There is no dependency named "nonexistent" registered.'
+
+    it 'throws an error when provided dependency has unregistered dependencies', () ->
+        expect(() ->
+            injector.inject((nonexistent)-> return nonexistent)()).toThrow 'There is no dependency named "nonexistent" registered.'
+
+    describe 'relaxed dependency providers', () ->
+        beforeAll () ->
+            injector.strict_dependency_providers = false
+        afterAll () ->
+            injector.strict_dependency_providers = true
+
+        it 'allows non-existent dependencies', () ->
+            expect(() -> injector.inject((nonexistent)-> return nonexistent)()).not.toThrow()

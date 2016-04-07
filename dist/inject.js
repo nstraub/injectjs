@@ -1,4 +1,4 @@
-/*! inject-js - v0.4.8 - 2016-04-07
+/*! inject-js - v0.4.9 - 2016-04-07
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -17,6 +17,8 @@ Injector.prototype.cache = {};
 Injector.prototype.roots = {};
 
 Injector.prototype.currentHashCode = 1;
+
+Injector.prototype.strict_dependency_providers = true;
 
 /* globals window: false */
 /* exported lifetimes */
@@ -157,7 +159,7 @@ Injector.prototype.run = function (context, adhoc_dependencies) {
 /* globals jasmine: false */
 
 
-function map_dependencies(dependency_providers, adhoc_dependencies, current_template) {
+function map_dependencies(dependency_providers, adhoc_dependencies, current_template, injector_instance) {
     var _this = this,
         adhoc_dependency_providers = {};
 
@@ -168,6 +170,13 @@ function map_dependencies(dependency_providers, adhoc_dependencies, current_temp
     });
     _.assign(dependency_providers, adhoc_dependency_providers);
 
+    if (!injector_instance.strict_dependency_providers) {
+        _.each(dependency_providers, function (provider, key) {
+            if (!provider) {
+                dependency_providers[key] = function () { return null; };
+            }
+        });
+    }
     return _.map(dependency_providers, function (provider, key) {
         if (!provider) {
             throw 'There is no dependency named "' + key + '" registered.';
@@ -179,12 +188,13 @@ function map_dependencies(dependency_providers, adhoc_dependencies, current_temp
 var create_object = Object.create;
 Injector.prototype._provide_transient = function (template) {
     var type = template.descriptor.type,
-        dependency_providers = template.providers;
+        dependency_providers = template.providers,
+        injector_instance = this;
 
     return function (adhoc_dependencies, current_template) {
         var instance = create_object(type.prototype);
 
-        type.apply(instance, map_dependencies.call(this, dependency_providers, adhoc_dependencies, current_template));
+        type.apply(instance, map_dependencies.call(this, dependency_providers, adhoc_dependencies, current_template, injector_instance));
         return instance;
     };
 };
@@ -227,8 +237,9 @@ Injector.prototype._provide_root = function (template) {
 };
 
 Injector.prototype._provide_provider = function(template) {
+    var injector_instance = this;
     return function (adhoc_dependencies, current_template) {
-        var dependencies = map_dependencies.call(this, template.providers, adhoc_dependencies, current_template);
+        var dependencies = map_dependencies.call(this, template.providers, adhoc_dependencies, current_template, injector_instance);
         return template.descriptor.type.apply(this, dependencies);
     };
 };
