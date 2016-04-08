@@ -1,4 +1,4 @@
-/*! inject-js - v0.4.11 - 2016-04-07
+/*! inject-js - v0.4.12 - 2016-04-08
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -381,6 +381,9 @@ Injector.prototype._register = function (where, name, type, lifetime) {
         throw 'no type was passed';
     }
 
+    if (this.cache[name]) {
+        delete this.cache[name];
+    }
     destination[name] = {
         name: name,
         type: realType,

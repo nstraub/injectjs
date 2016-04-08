@@ -74,6 +74,9 @@ Injector.prototype._register = function (where, name, type, lifetime) {
         throw 'no type was passed';
     }
 
+    if (this.cache[name]) {
+        delete this.cache[name];
+    }
     destination[name] = {
         name: name,
         type: realType,
