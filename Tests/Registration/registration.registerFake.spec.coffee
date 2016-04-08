@@ -15,3 +15,9 @@ registration_register_fake_spec = () ->
         expect(() ->
             injector.registerFake('test type', @test_type,
               'invalid lifetime')).toThrow 'invalid lifetime "invalid lifetime" provided. Valid lifetimes are singleton, transient, instance and parent'
+
+    it 'registers passive providers', () ->
+        injector.registerFake 'test type', ['test_dependency', @test_type], null, 'passive_provider'
+        @test_result.dependencies = ['test_dependency']
+        @test_result.provider = 'passive_provider'
+        expect(injector.fakes['test type']).toEqual @test_result

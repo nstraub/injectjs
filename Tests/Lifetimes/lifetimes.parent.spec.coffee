@@ -48,6 +48,7 @@ lifetimes_parent_spec = () ->
         expect(type.parent).toBe(type.third.parent)
 
     it 'creates a different instance of the type for its parents siblings', () ->
+        debugger;
         provider = injector.inject 'base_type'
         type = provider()
 
@@ -57,11 +58,11 @@ lifetimes_parent_spec = () ->
         expect(type.second3.third.parent).toBeInstanceOf(injector.getType('parent_dependency'))
         expect(type.second3.parent).toBeInstanceOf(injector.getType('parent_dependency'))
 
-        expect(type.second2.third.parent).toBe(type.second2.parent)
-        expect(type.second3.third.parent).toBe(type.second3.parent)
-        expect(type.second.third.parent).not.toBe(type.second2.parent)
-        expect(type.second.third.parent).not.toBe(type.second3.parent)
-        expect(type.second2.parent).not.toBe(type.second3.parent)
+        expect(type.second2.third.parent).toBe(type.second2.parent, 'expect(type.second2.third.parent).toBe(type.second2.parent)')
+        expect(type.second3.third.parent).toBe(type.second3.parent, 'expect(type.second3.third.parent).toBe(type.second3.parent)')
+        expect(type.second.third.parent).not.toBe(type.second2.parent, 'expect(type.second.third.parent).not.toBe(type.second2.parent)')
+        expect(type.second.third.parent).not.toBe(type.second3.parent, 'expect(type.second.third.parent).not.toBe(type.second3.parent)')
+        expect(type.second2.parent).not.toBe(type.second3.parent, 'expect(type.second2.parent).not.toBe(type.second3.parent)')
 
     it 'references the topmost parent that contains the dependency', () ->
         provider = injector.inject 'base_parent_type'

@@ -32,12 +32,16 @@ Injector.prototype.registerMain = function (main) {
     this._register('providers', 'main', main);
 };
 
-Injector.prototype.registerFake = function (name, type, lifetime) {
+Injector.prototype.registerFake = function (name, type, lifetime, provider) {
     lifetime = lifetime || this.DEFAULT_LIFETIME;
 
     assertLifetime(lifetime);
 
     this._register('fakes', name, type, lifetime);
+
+    if (provider) {
+        this.fakes[name].provider = provider;
+    }
 };
 
 

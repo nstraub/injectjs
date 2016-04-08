@@ -50,6 +50,19 @@ function _assert_circular_references(template, dependencies, path) {
     _assert_circular_references(parent, dependencies, path);
 }
 
+var _is_parent = function (template, name) {
+    if (!template) {
+        return false;
+    }
+    if (template.children && template.children[name]) {
+        return true;
+    }
+    return _is_parent(template.parent, name);
+};
+
+var _get_template = function (template, current_template) {
+    return template.parent === current_template ? template : current_template || template;
+};
 Injector.prototype._inject = function (name, descriptor, parent, root) {
     var dependency_providers, template, _this = this, provider_name;
 
@@ -72,7 +85,7 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
         return function (adhoc_dependencies, current_template) {
             var item = _this.cache[name] || _this.inject(name);
-            return item.call(this, adhoc_dependencies, current_template || template);
+            return item.call(this, adhoc_dependencies, _get_template(template, current_template));
         };
     }
 
@@ -110,11 +123,21 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
 
     template.providers = dependency_providers;
 
-    return this._build_provider(template);
+    var provider = this._build_provider(template);
+    provider.template = template;
+    return function (adhoc_dependencies, current_template) {
+        var item = provider.hashCode === _this._get_descriptor(name).hashCode ? provider : _this.inject(name);
+        return item.call(this, adhoc_dependencies, _get_template(template, current_template));
+    };
 };
 
 Injector.prototype._get_descriptor = function (name) {
-    return typeof name === 'string' ? this.fakes[name] || this.types[name] || this.providers[name] : this._build_anonymous_descriptor(name);
+    if (typeof name === 'string') {
+        return this.fakes[name] || this.types[name] || this.providers[name];
+    } else if (typeof name === 'undefined') {
+        return {};
+    }
+    return this._build_anonymous_descriptor(name);
 };
 
 Injector.prototype.inject = function (name) {

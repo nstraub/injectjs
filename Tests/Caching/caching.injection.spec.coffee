@@ -42,3 +42,11 @@ caching_injection_spec = () ->
                         expect(third_type).toBeInstanceOf injector.getType(type)
 
                         expect(injector._build_provider).toHaveBeenCalledTwice()
+
+                    if !(lifetime in ['state', 'singleton'] || dependency_lifetime in ['state', 'singleton'])
+                        it lifetime + ' discards stale base_' + dependency_lifetime + '_type', () ->
+                            first = injector.get(type)
+                            injector.registerType 'base_' + dependency_lifetime + '_type', (()->), dependency_lifetime
+                            second = injector.get(type)
+
+                            expect(second.dependency).toBeInstanceOf injector.types['base_' + dependency_lifetime + '_type'].type

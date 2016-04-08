@@ -50,7 +50,7 @@ get_adhoc_dependency_tests = (lifetime) ->
             expect(result.a).toBe 1
 
         it 'passes ad-hoc dependencies up the dependency tree', () ->
-            injector.types.parent_adhoc_type =
+            setup.make_descriptor
                 name: 'parent_adhoc_type'
                 type: (@test_type, @ordered_test_type) -> return
                 dependencies: ['test_type', 'ordered_test_type']

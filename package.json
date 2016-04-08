@@ -1,9 +1,11 @@
 {
   "name": "inject-js",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "lightweight, small, high level dependency injector with object lifetime management",
   "main": "dist/inject.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/nstraub/injectjs.git"
