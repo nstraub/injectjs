@@ -1,4 +1,4 @@
-/*! inject-js - v0.4.9 - 2016-04-07
+/*! inject-js - v0.4.11 - 2016-04-07
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -160,28 +160,18 @@ Injector.prototype.run = function (context, adhoc_dependencies) {
 
 
 function map_dependencies(dependency_providers, adhoc_dependencies, current_template, injector_instance) {
-    var _this = this,
-        adhoc_dependency_providers = {};
+    var _this = this;
+    adhoc_dependencies = adhoc_dependencies || {};
 
-    _.each(adhoc_dependencies, function (dependency, key) {
-        adhoc_dependency_providers[key] = function () {
-            return dependency;
-        };
-    });
-    _.assign(dependency_providers, adhoc_dependency_providers);
-
-    if (!injector_instance.strict_dependency_providers) {
-        _.each(dependency_providers, function (provider, key) {
-            if (!provider) {
-                dependency_providers[key] = function () { return null; };
-            }
-        });
-    }
     return _.map(dependency_providers, function (provider, key) {
-        if (!provider) {
+        if (provider) {
+            return provider.call(_this, adhoc_dependencies, current_template);
+        } else if (adhoc_dependencies.hasOwnProperty(key)) {
+            return adhoc_dependencies[key];
+        } else if (injector_instance.strict_dependency_providers) {
             throw 'There is no dependency named "' + key + '" registered.';
         }
-        return provider.call(_this, adhoc_dependencies, current_template);
+        return null;
     });
 }
 

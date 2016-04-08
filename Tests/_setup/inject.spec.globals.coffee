@@ -14,7 +14,10 @@ get_adhoc_dependency_tests = (lifetime) ->
                 type: (@f, @e, @c, @d, @b, @a) -> return
                 dependencies: ['f', 'e', 'c', 'd', 'b', 'a']
                 lifetime: lifetime
-
+            setup.make_descriptor
+                name: 'type_with_no_dependencies'
+                type: () -> @args = arguments
+                lifetime: lifetime
 
             setup.make_descriptor
                 target: 'providers'
@@ -67,4 +70,7 @@ get_adhoc_dependency_tests = (lifetime) ->
             expect(result.ordered_test_type).toBeInstanceOf(injector.types.ordered_test_type.type)
             expect(result.test_type).toBeInstanceOf(injector.types.test_type.type)
 
+
+        it 'doesnt pass unwanted dependencies', () ->
+            expect(injector.get('type_with_no_dependencies', @, {adhoc: 1}).args.length).toBe 0
 
