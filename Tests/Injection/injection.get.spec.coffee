@@ -14,3 +14,10 @@ injection_get_spec = () ->
                     type = injector.get lifetime + '_provides_context_through_' + dependency_lifetime, @
 
                     expect(type.dependency.dependency).toBe(@)
+
+    describe 'providers', () ->
+        beforeAll () ->
+            setup.assign_base_types()
+        it 'returns the type`s provider when ::provider suffix is passed', () ->
+            provider = injector.get('base_transient_type::provider')
+            expect(provider()).toBeInstanceOf injector.types.base_transient_type.type

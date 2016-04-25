@@ -1,4 +1,4 @@
-/*! inject-js - v0.4.13 - 2016-04-09
+/*! inject-js - v0.4.14 - 2016-04-25
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -85,7 +85,13 @@ var _get_template = function (template, current_template) {
     return template.parent === current_template ? template : current_template || template;
 };
 Injector.prototype._inject = function (name, descriptor, parent, root) {
-    var dependency_providers, template, _this = this, provider_name;
+    var dependency_providers, template = {}, _this = this, provider_name;
+
+    if (typeof name === 'string' && ~name.indexOf('::provider')) {
+        name = name.replace('::provider', '');
+        descriptor = this._get_descriptor(name);
+        template.return_provider = true;
+    }
 
     if (!descriptor) {
         if (parent) {
@@ -94,8 +100,6 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
             throw 'There is no dependency named "' + name + '" registered.';
         }
     }
-
-    template = {};
 
     template.hashCode = ++this.currentHashCode;
     template.descriptor = descriptor;
@@ -106,6 +110,11 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
         return function (adhoc_dependencies, current_template) {
             var item = _this.cache[name] || _this.inject(name);
+            if (template.return_provider) {
+                return function (adhoc_dependencies) {
+                    return item.call(this, adhoc_dependencies, _get_template(template, current_template));
+                };
+            }
             return item.call(this, adhoc_dependencies, _get_template(template, current_template));
         };
     }
@@ -148,6 +157,11 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     provider.template = template;
     return function (adhoc_dependencies, current_template) {
         var item = provider.hashCode === _this._get_descriptor(name).hashCode ? provider : _this.inject(name);
+        if (template.return_provider) {
+            return function (adhoc_dependencies) {
+                return item.call(this, adhoc_dependencies, _get_template(template, current_template));
+            };
+        }
         return item.call(this, adhoc_dependencies, _get_template(template, current_template));
     };
 };
