@@ -48,7 +48,6 @@ lifetimes_parent_spec = () ->
         expect(type.parent).toBe(type.third.parent)
 
     it 'creates a different instance of the type for its parents siblings', () ->
-        debugger;
         provider = injector.inject 'base_type'
         type = provider()
 

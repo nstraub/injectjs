@@ -4,13 +4,13 @@
 /* globals jasmine: false */
 
 
-function map_dependencies(dependency_providers, adhoc_dependencies, current_template, injector_instance) {
+function map_dependencies(adhoc_dependencies, graph, injector_instance) {
     var _this = this;
     adhoc_dependencies = adhoc_dependencies || {};
 
-    return _.map(dependency_providers, function (provider, key) {
+    return _.map(graph.providers, function (provider, key) {
         if (provider) {
-            return provider.call(_this, adhoc_dependencies, current_template);
+            return provider.call(_this, adhoc_dependencies, graph.dependencies[key]);
         } else if (adhoc_dependencies.hasOwnProperty(key)) {
             return adhoc_dependencies[key];
         } else if (injector_instance.strict_dependency_providers) {
@@ -21,28 +21,26 @@ function map_dependencies(dependency_providers, adhoc_dependencies, current_temp
 }
 
 var create_object = Object.create;
-Injector.prototype._provide_transient = function (current_template) {
-    var type = current_template.descriptor.type,
-        dependency_providers = current_template.providers,
+Injector.prototype._provide_transient = function (descriptor) {
+    var type = descriptor.type,
         injector_instance = this;
 
-    return function (adhoc_dependencies, current_template) {
+    return function (graph, adhoc_dependencies) {
         var instance = create_object(type.prototype);
-
-        type.apply(instance, map_dependencies.call(this, dependency_providers, adhoc_dependencies, current_template, injector_instance));
+        type.apply(instance, map_dependencies.call(this, adhoc_dependencies, graph, injector_instance));
         return instance;
     };
 };
-Injector.prototype._provide_cached = function (current_template, cache) {
-    var name = current_template.descriptor.name;
+Injector.prototype._provide_cached = function (descriptor, cache) {
+    var name = descriptor.name;
 
     if (!cache[name]) {
-        var dependency_to_cache = this._provide_transient(current_template);
+        var dependency_to_cache = this._provide_transient(descriptor);
 
-        cache[name] = function (adhoc_dependencies) {
+        cache[name] = function (graph, adhoc_dependencies) {
             var cached;
             if (typeof dependency_to_cache === 'function') {
-                dependency_to_cache = dependency_to_cache.call(this, adhoc_dependencies);
+                dependency_to_cache = dependency_to_cache.call(this, graph, adhoc_dependencies);
                 cached = function () {
                     return dependency_to_cache;
                 };
@@ -55,35 +53,35 @@ Injector.prototype._provide_cached = function (current_template, cache) {
     return cache[name];
 };
 
-Injector.prototype._provide_root = function (template) {
-    var name = template.descriptor.name,
+Injector.prototype._provide_root = function (descriptor) {
+    var name = descriptor.name,
         _this = this;
 
-    return function (adhoc_dependencies, current_template) {
+    return function (current_template, adhoc_dependencies) {
         var roots = current_template.root.roots = current_template.root.roots || {};
 
         if (!roots[name]) {
-            roots[name] = _this._provide_transient(template).call(this, adhoc_dependencies, current_template);
+            roots[name] = _this._provide_transient(descriptor).call(this, current_template, adhoc_dependencies);
         }
         return roots[name];
     };
 };
 
-Injector.prototype._provide_provider = function(template) {
+Injector.prototype._provide_provider = function(descriptor) {
     var injector_instance = this;
-    return function (adhoc_dependencies, current_template) {
-        var dependencies = map_dependencies.call(this, template.providers, adhoc_dependencies, current_template, injector_instance);
-        return template.descriptor.type.apply(this, dependencies);
+    return function (current_template, adhoc_dependencies) {
+        var dependencies = map_dependencies.call(this, adhoc_dependencies, current_template, injector_instance);
+        return descriptor.type.apply(this, dependencies);
     };
 };
 
-Injector.prototype._provide_parent = function (template) {
+Injector.prototype._provide_parent = function (descriptor) {
     var _this = this;
 
-    return function (adhoc_dependencies, current_template) {
+    return function (current_template, adhoc_dependencies) {
         var parent_template = current_template,
             topmost_parent = parent_template,
-            dependency_name = template.descriptor.name;
+            dependency_name = descriptor.name;
         while (parent_template = parent_template.parent) {
             if (parent_template.children && parent_template.children[dependency_name]) {
                 topmost_parent = parent_template;
@@ -100,7 +98,7 @@ Injector.prototype._provide_parent = function (template) {
 
         if (!parent_template.children[dependency_name] || parent_template.children[dependency_name] === 'building') {
             parent_template.children[dependency_name] = 'building';
-            parent_template.children[dependency_name] = _this._provide_transient(template).call(this, adhoc_dependencies, current_template);
+            parent_template.children[dependency_name] = _this._provide_transient(descriptor).call(this, current_template, adhoc_dependencies);
         }
         return parent_template.children[dependency_name];
     };
@@ -116,9 +114,8 @@ Injector.prototype._provide_parent = function (template) {
             }
         });
     }
-    Injector.prototype._build_provider = function (current_template) {
+    Injector.prototype._build_provider = function (descriptor) {
         var item,
-            descriptor = current_template.descriptor,
             name = descriptor.name,
             provider_name,
             cache = null;
@@ -139,7 +136,7 @@ Injector.prototype._provide_parent = function (template) {
                     provider_name = 'provide_' + descriptor.lifetime;
             }
         }
-        item = this['_' + provider_name](current_template, cache);
+        item = this['_' + provider_name](descriptor, cache);
         item.hashCode = descriptor.hashCode;
         if (name && !descriptor.provider) {
             this.cache[name] = item;

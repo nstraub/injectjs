@@ -1,4 +1,4 @@
-/*! inject-js - v0.4.14 - 2016-04-25
+/*! inject-js - v0.4.15 - 2016-04-26
 * https://github.com/nstraub/injectjs
 * Copyright (c) 2016 ; Licensed  */
 'use strict';
@@ -71,21 +71,8 @@ function _assert_circular_references(template, dependencies, path) {
     _assert_circular_references(parent, dependencies, path);
 }
 
-var _is_parent = function (template, name) {
-    if (!template) {
-        return false;
-    }
-    if (template.children && template.children[name]) {
-        return true;
-    }
-    return _is_parent(template.parent, name);
-};
-
-var _get_template = function (template, current_template) {
-    return template.parent === current_template ? template : current_template || template;
-};
-Injector.prototype._inject = function (name, descriptor, parent, root) {
-    var dependency_providers, template = {}, _this = this, provider_name;
+Injector.prototype._build_graph = function (name, descriptor, parent, root) {
+    var template = {}, provider_name, dependency_templates;
 
     if (typeof name === 'string' && ~name.indexOf('::provider')) {
         name = name.replace('::provider', '');
@@ -105,25 +92,10 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     template.descriptor = descriptor;
     template.parent = parent || null;
     template.root = root || template;
-    name = descriptor.name;
-
-    if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
-        return function (adhoc_dependencies, current_template) {
-            var item = _this.cache[name] || _this.inject(name);
-            if (template.return_provider) {
-                return function (adhoc_dependencies) {
-                    return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-                };
-            }
-            return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-        };
-    }
 
     if (root && descriptor.dependencies) {
         _assert_circular_references(template, descriptor.dependencies, []);
     }
-
-    root = template.root;
 
     provider_name = descriptor.provider;
 
@@ -136,34 +108,83 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
             provider_descriptor.dependencies.shift();
             provider_descriptor.dependencies.unshift(name);
 
-            return this._inject(provider_name, provider_descriptor, template, root);
+            return this._build_graph(provider_name, provider_descriptor, parent, template.root);
         }
     }
 
-    dependency_providers = {};
+    dependency_templates = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this._get_descriptor(dependency_name), template, root);
-        if (dependency_providers[dependency_name]) {
-            dependency_providers[dependency_name + counter++] = provider;
+        var dependency_template = this._build_graph(dependency_name, this._get_descriptor(dependency_name), template, template.root);
+        if (dependency_templates[dependency_name]) {
+            dependency_templates[dependency_name + counter++] = dependency_template;
         } else {
-            dependency_providers[dependency_name] = provider;
+            dependency_templates[dependency_name] = dependency_template;
         }
+    }, this));
+
+    template.dependencies = dependency_templates;
+    return template;
+
+};
+
+function set_root(template, root) {
+    template.root = root;
+    _.each(template.dependencies, function (dependency) {
+        set_root(dependency, root);
+    });
+}
+
+Injector.prototype._provider_getter = function (item, template) {
+    var _this = this;
+    return function (adhoc_dependencies, template_clone) {
+        var provider = item();
+        if (template.return_provider) {
+            return function (adhoc_dependencies) {
+                var template_clone = _.cloneDeepWith(template, function(value, key) {
+                    switch (key) {
+                        case 'root': return value;
+                        case 'children': return {};
+                        case 'hashCode': return ++_this.currentHashCode;
+                        default: return;
+                    }
+                });
+                template_clone.parent = template.parent;
+                if (template === template.root) {
+                    set_root(template_clone, template_clone);
+                    if (template_clone.roots) {
+                        delete template_clone.roots;
+                    }
+                }
+                return provider.call(this, template_clone, adhoc_dependencies);
+            };
+        }
+        return provider.call(this, template_clone || template, adhoc_dependencies);
+    };
+};
+
+Injector.prototype._inject = function (template) {
+    if (template === null) {
+        return null;
+    }
+    var descriptor = template.descriptor;
+
+    var name = descriptor.name, dependency_providers;
+
+    dependency_providers = {};
+    _.each(template.dependencies, _.bind(function (dependency_template, dependency_template_key) {
+        dependency_providers[dependency_template_key] = this._inject(dependency_template);
     }, this));
 
     template.providers = dependency_providers;
 
-    var provider = this._build_provider(template);
-    provider.template = template;
-    return function (adhoc_dependencies, current_template) {
-        var item = provider.hashCode === _this._get_descriptor(name).hashCode ? provider : _this.inject(name);
-        if (template.return_provider) {
-            return function (adhoc_dependencies) {
-                return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-            };
-        }
-        return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-    };
+    if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
+        return this._provider_getter(_.bind(function () {return this.cache[name] || this.inject(template);}, this), template);
+    }
+
+    var provider = this._build_provider(template.descriptor);
+
+    return this._provider_getter(_.bind(function () { return provider.hashCode === this._get_descriptor(name).hashCode ? provider : this.inject(template); }, this), template);
 };
 
 Injector.prototype._get_descriptor = function (name) {
@@ -176,12 +197,12 @@ Injector.prototype._get_descriptor = function (name) {
 };
 
 Injector.prototype.inject = function (name) {
-    return this._inject(name, this._get_descriptor(name));
+    return this._inject(this._build_graph(name, this._get_descriptor(name)));
 };
 
-Injector.prototype.get = function (name, context, adhoc_dependencies) {
+Injector.prototype.get = function (name, adhoc_dependencies, context) {
     var provider = this.inject(name);
-    return context ? provider.call(context, adhoc_dependencies) : provider(adhoc_dependencies);
+    return provider.call(context, adhoc_dependencies);
 };
 
 Injector.prototype.run = function (context, adhoc_dependencies) {
@@ -196,13 +217,13 @@ Injector.prototype.run = function (context, adhoc_dependencies) {
 /* globals jasmine: false */
 
 
-function map_dependencies(dependency_providers, adhoc_dependencies, current_template, injector_instance) {
+function map_dependencies(adhoc_dependencies, graph, injector_instance) {
     var _this = this;
     adhoc_dependencies = adhoc_dependencies || {};
 
-    return _.map(dependency_providers, function (provider, key) {
+    return _.map(graph.providers, function (provider, key) {
         if (provider) {
-            return provider.call(_this, adhoc_dependencies, current_template);
+            return provider.call(_this, adhoc_dependencies, graph.dependencies[key]);
         } else if (adhoc_dependencies.hasOwnProperty(key)) {
             return adhoc_dependencies[key];
         } else if (injector_instance.strict_dependency_providers) {
@@ -213,28 +234,26 @@ function map_dependencies(dependency_providers, adhoc_dependencies, current_temp
 }
 
 var create_object = Object.create;
-Injector.prototype._provide_transient = function (current_template) {
-    var type = current_template.descriptor.type,
-        dependency_providers = current_template.providers,
+Injector.prototype._provide_transient = function (descriptor) {
+    var type = descriptor.type,
         injector_instance = this;
 
-    return function (adhoc_dependencies, current_template) {
+    return function (graph, adhoc_dependencies) {
         var instance = create_object(type.prototype);
-
-        type.apply(instance, map_dependencies.call(this, dependency_providers, adhoc_dependencies, current_template, injector_instance));
+        type.apply(instance, map_dependencies.call(this, adhoc_dependencies, graph, injector_instance));
         return instance;
     };
 };
-Injector.prototype._provide_cached = function (current_template, cache) {
-    var name = current_template.descriptor.name;
+Injector.prototype._provide_cached = function (descriptor, cache) {
+    var name = descriptor.name;
 
     if (!cache[name]) {
-        var dependency_to_cache = this._provide_transient(current_template);
+        var dependency_to_cache = this._provide_transient(descriptor);
 
-        cache[name] = function (adhoc_dependencies) {
+        cache[name] = function (graph, adhoc_dependencies) {
             var cached;
             if (typeof dependency_to_cache === 'function') {
-                dependency_to_cache = dependency_to_cache.call(this, adhoc_dependencies);
+                dependency_to_cache = dependency_to_cache.call(this, graph, adhoc_dependencies);
                 cached = function () {
                     return dependency_to_cache;
                 };
@@ -247,35 +266,35 @@ Injector.prototype._provide_cached = function (current_template, cache) {
     return cache[name];
 };
 
-Injector.prototype._provide_root = function (template) {
-    var name = template.descriptor.name,
+Injector.prototype._provide_root = function (descriptor) {
+    var name = descriptor.name,
         _this = this;
 
-    return function (adhoc_dependencies, current_template) {
+    return function (current_template, adhoc_dependencies) {
         var roots = current_template.root.roots = current_template.root.roots || {};
 
         if (!roots[name]) {
-            roots[name] = _this._provide_transient(template).call(this, adhoc_dependencies, current_template);
+            roots[name] = _this._provide_transient(descriptor).call(this, current_template, adhoc_dependencies);
         }
         return roots[name];
     };
 };
 
-Injector.prototype._provide_provider = function(template) {
+Injector.prototype._provide_provider = function(descriptor) {
     var injector_instance = this;
-    return function (adhoc_dependencies, current_template) {
-        var dependencies = map_dependencies.call(this, template.providers, adhoc_dependencies, current_template, injector_instance);
-        return template.descriptor.type.apply(this, dependencies);
+    return function (current_template, adhoc_dependencies) {
+        var dependencies = map_dependencies.call(this, adhoc_dependencies, current_template, injector_instance);
+        return descriptor.type.apply(this, dependencies);
     };
 };
 
-Injector.prototype._provide_parent = function (template) {
+Injector.prototype._provide_parent = function (descriptor) {
     var _this = this;
 
-    return function (adhoc_dependencies, current_template) {
+    return function (current_template, adhoc_dependencies) {
         var parent_template = current_template,
             topmost_parent = parent_template,
-            dependency_name = template.descriptor.name;
+            dependency_name = descriptor.name;
         while (parent_template = parent_template.parent) {
             if (parent_template.children && parent_template.children[dependency_name]) {
                 topmost_parent = parent_template;
@@ -292,7 +311,7 @@ Injector.prototype._provide_parent = function (template) {
 
         if (!parent_template.children[dependency_name] || parent_template.children[dependency_name] === 'building') {
             parent_template.children[dependency_name] = 'building';
-            parent_template.children[dependency_name] = _this._provide_transient(template).call(this, adhoc_dependencies, current_template);
+            parent_template.children[dependency_name] = _this._provide_transient(descriptor).call(this, current_template, adhoc_dependencies);
         }
         return parent_template.children[dependency_name];
     };
@@ -308,9 +327,8 @@ Injector.prototype._provide_parent = function (template) {
             }
         });
     }
-    Injector.prototype._build_provider = function (current_template) {
+    Injector.prototype._build_provider = function (descriptor) {
         var item,
-            descriptor = current_template.descriptor,
             name = descriptor.name,
             provider_name,
             cache = null;
@@ -331,7 +349,7 @@ Injector.prototype._provide_parent = function (template) {
                     provider_name = 'provide_' + descriptor.lifetime;
             }
         }
-        item = this['_' + provider_name](current_template, cache);
+        item = this['_' + provider_name](descriptor, cache);
         item.hashCode = descriptor.hashCode;
         if (name && !descriptor.provider) {
             this.cache[name] = item;

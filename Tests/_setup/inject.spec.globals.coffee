@@ -72,5 +72,5 @@ get_adhoc_dependency_tests = (lifetime) ->
 
 
         it 'doesnt pass unwanted dependencies', () ->
-            expect(injector.get('type_with_no_dependencies', @, {adhoc: 1}).args.length).toBe 0
+            expect(injector.get('type_with_no_dependencies', {adhoc: 1}).args.length, @).toBe 0
 

@@ -50,21 +50,8 @@ function _assert_circular_references(template, dependencies, path) {
     _assert_circular_references(parent, dependencies, path);
 }
 
-var _is_parent = function (template, name) {
-    if (!template) {
-        return false;
-    }
-    if (template.children && template.children[name]) {
-        return true;
-    }
-    return _is_parent(template.parent, name);
-};
-
-var _get_template = function (template, current_template) {
-    return template.parent === current_template ? template : current_template || template;
-};
-Injector.prototype._inject = function (name, descriptor, parent, root) {
-    var dependency_providers, template = {}, _this = this, provider_name;
+Injector.prototype._build_graph = function (name, descriptor, parent, root) {
+    var template = {}, provider_name, dependency_templates;
 
     if (typeof name === 'string' && ~name.indexOf('::provider')) {
         name = name.replace('::provider', '');
@@ -84,25 +71,10 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
     template.descriptor = descriptor;
     template.parent = parent || null;
     template.root = root || template;
-    name = descriptor.name;
-
-    if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
-        return function (adhoc_dependencies, current_template) {
-            var item = _this.cache[name] || _this.inject(name);
-            if (template.return_provider) {
-                return function (adhoc_dependencies) {
-                    return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-                };
-            }
-            return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-        };
-    }
 
     if (root && descriptor.dependencies) {
         _assert_circular_references(template, descriptor.dependencies, []);
     }
-
-    root = template.root;
 
     provider_name = descriptor.provider;
 
@@ -115,34 +87,83 @@ Injector.prototype._inject = function (name, descriptor, parent, root) {
             provider_descriptor.dependencies.shift();
             provider_descriptor.dependencies.unshift(name);
 
-            return this._inject(provider_name, provider_descriptor, template, root);
+            return this._build_graph(provider_name, provider_descriptor, parent, template.root);
         }
     }
 
-    dependency_providers = {};
+    dependency_templates = {};
     var counter = 0;
     _.each(descriptor.dependencies, _.bind(function (dependency_name) {
-        var provider = this._inject(dependency_name, this._get_descriptor(dependency_name), template, root);
-        if (dependency_providers[dependency_name]) {
-            dependency_providers[dependency_name + counter++] = provider;
+        var dependency_template = this._build_graph(dependency_name, this._get_descriptor(dependency_name), template, template.root);
+        if (dependency_templates[dependency_name]) {
+            dependency_templates[dependency_name + counter++] = dependency_template;
         } else {
-            dependency_providers[dependency_name] = provider;
+            dependency_templates[dependency_name] = dependency_template;
         }
+    }, this));
+
+    template.dependencies = dependency_templates;
+    return template;
+
+};
+
+function set_root(template, root) {
+    template.root = root;
+    _.each(template.dependencies, function (dependency) {
+        set_root(dependency, root);
+    });
+}
+
+Injector.prototype._provider_getter = function (item, template) {
+    var _this = this;
+    return function (adhoc_dependencies, template_clone) {
+        var provider = item();
+        if (template.return_provider) {
+            return function (adhoc_dependencies) {
+                var template_clone = _.cloneDeepWith(template, function(value, key) {
+                    switch (key) {
+                        case 'root': return value;
+                        case 'children': return {};
+                        case 'hashCode': return ++_this.currentHashCode;
+                        default: return;
+                    }
+                });
+                template_clone.parent = template.parent;
+                if (template === template.root) {
+                    set_root(template_clone, template_clone);
+                    if (template_clone.roots) {
+                        delete template_clone.roots;
+                    }
+                }
+                return provider.call(this, template_clone, adhoc_dependencies);
+            };
+        }
+        return provider.call(this, template_clone || template, adhoc_dependencies);
+    };
+};
+
+Injector.prototype._inject = function (template) {
+    if (template === null) {
+        return null;
+    }
+    var descriptor = template.descriptor;
+
+    var name = descriptor.name, dependency_providers;
+
+    dependency_providers = {};
+    _.each(template.dependencies, _.bind(function (dependency_template, dependency_template_key) {
+        dependency_providers[dependency_template_key] = this._inject(dependency_template);
     }, this));
 
     template.providers = dependency_providers;
 
-    var provider = this._build_provider(template);
-    provider.template = template;
-    return function (adhoc_dependencies, current_template) {
-        var item = provider.hashCode === _this._get_descriptor(name).hashCode ? provider : _this.inject(name);
-        if (template.return_provider) {
-            return function (adhoc_dependencies) {
-                return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-            };
-        }
-        return item.call(this, adhoc_dependencies, _get_template(template, current_template));
-    };
+    if (this.cache[name] && this.cache[name].hashCode === descriptor.hashCode) {
+        return this._provider_getter(_.bind(function () {return this.cache[name] || this.inject(template);}, this), template);
+    }
+
+    var provider = this._build_provider(template.descriptor);
+
+    return this._provider_getter(_.bind(function () { return provider.hashCode === this._get_descriptor(name).hashCode ? provider : this.inject(template); }, this), template);
 };
 
 Injector.prototype._get_descriptor = function (name) {
@@ -155,12 +176,12 @@ Injector.prototype._get_descriptor = function (name) {
 };
 
 Injector.prototype.inject = function (name) {
-    return this._inject(name, this._get_descriptor(name));
+    return this._inject(this._build_graph(name, this._get_descriptor(name)));
 };
 
-Injector.prototype.get = function (name, context, adhoc_dependencies) {
+Injector.prototype.get = function (name, adhoc_dependencies, context) {
     var provider = this.inject(name);
-    return context ? provider.call(context, adhoc_dependencies) : provider(adhoc_dependencies);
+    return provider.call(context, adhoc_dependencies);
 };
 
 Injector.prototype.run = function (context, adhoc_dependencies) {
