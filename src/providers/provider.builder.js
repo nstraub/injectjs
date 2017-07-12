@@ -3,7 +3,13 @@
 function createProviderBuilderPrototype(stores, providers) {
     "use strict";
     return {
-        with: function () { throw 'not implemented'; },
+        with: function (dependency) {
+            this._dependency = dependency;
+            this._dependencyType = _.isFunction(dependency) ? 'ctor' : 'proto';
+            if (this._post_provider) {
+                this._post_provider._inject.unshift(dependency);
+            }
+        },
 
         withLifetime: function (lifetime_name) {
             if (!providers[lifetime_name]) {

@@ -147,9 +147,27 @@ var provider_builder_spec = function () {
     });
 
     describe("with method", function () {
-        it("should register passed argument on _dependency as a constructor when passed a function", function () { return; });
-        it("should register passed argument on _dependency as a prototype when passed an object", function () { return; });
-        it("should prepend _dependency to the _inject array of _post_provider if present", function () { return; });
+        it("should register passed argument on _dependency as a constructor when passed a function", function () {
+            var ctor = function () {};
+            _provider.with(ctor);
+
+            expect(_provider._dependency).toBe(ctor);
+            expect(_provider._dependencyType).toEqual('ctor');
+        });
+        it("should register passed argument on _dependency as a prototype when passed an object", function () {
+            var ctor = {};
+            _provider.with(ctor);
+
+            expect(_provider._dependency).toBe(ctor);
+            expect(_provider._dependencyType).toEqual('proto');
+        });
+        it("should prepend _dependency to the _inject array of _post_provider if present", function () {
+            var ctor = {};
+            _provider._post_provider = {_inject: []};
+            _provider.with(ctor);
+
+            expect(_provider._post_provider._inject[0]).toBe(ctor);
+        });
         it("should throw an error if argument is not a function or an object", function () { return; });
         it("should throw an error if there already is a registered provider", function () { return; });
         it("should return itself", function () { return; });
