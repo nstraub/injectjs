@@ -1,11 +1,11 @@
 /*global describe*/
 /*global it*/
 /*global expect*/
-var singleton_provider_spec = function () {
-    "use strict";
+export default function () {
+
 
     describe("$get method", function () {
-        it("should _instantiate dependency only once", function () { return; });
-        it("should return the same instance if invoked twice", function () { return; });
+        it("should _instantiate dependency only once");
+        it("should return the same instance if invoked twice");
     });
 };

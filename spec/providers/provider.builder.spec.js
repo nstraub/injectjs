@@ -1,14 +1,15 @@
+import {ProviderBuilder, providers} from '../util/setup.teardown';
 /*global describe*/
 /*global it*/
 /*global expect*/
 /*global spyOn*/
-/*global ProviderBuilder*/
+
 /*global beforeEach*/
 /*global jasmine*/
-/*global providers*/
-var provider_builder_spec = function () {
-    "use strict";
-    var _provider;
+
+export default function () {
+    debugger;
+    let _provider;
     beforeEach(function () {
         _provider = Object.create(ProviderBuilder);
     });
@@ -94,7 +95,7 @@ var provider_builder_spec = function () {
 
     describe("dependsOn method", function () {
         it("should set the _inject property with passed array", function () {
-            var inject = [
+            const inject = [
                 {
                     name: 'test',
                     provider: null
@@ -110,7 +111,7 @@ var provider_builder_spec = function () {
             expect(_provider._inject).toEqual([{name: 'test', provider: undefined}]);
         });
         it("should warn if any static dependencies aren't registered", function () {
-            var inject = [
+            const inject = [
                 {
                     name: 'test',
                     static: true,
@@ -123,15 +124,7 @@ var provider_builder_spec = function () {
 
             expect(console.warn).toHaveBeenCalledWith('static dependency test is not registered');
         });
-        it("should assert circular references for static dependencies", function () {
-            /*var inject = [
-                {
-                    name: 'test',
-                    static: true
-                }
-            ];*/
-            return;
-        });
+        it("should assert circular references for static dependencies");
         it("should throw an error if passed argument isn't an array", function () {
             expect(function () { _provider.dependsOn('invalid'); }).toThrowError("array expected. 'invalid' is not an array");
             expect(function () { _provider.dependsOn({}); }).toThrowError("array expected. '[object Object]' is not an array");
@@ -148,44 +141,45 @@ var provider_builder_spec = function () {
 
     describe("with method", function () {
         it("should register passed argument on _dependency as a constructor when passed a function", function () {
-            var ctor = function () {};
-            _provider.with(ctor);
+            const ctor = function () {
+            };
+            _provider.to(ctor);
 
             expect(_provider._dependency).toBe(ctor);
             expect(_provider._dependencyType).toEqual('ctor');
         });
         it("should register passed argument on _dependency as a prototype when passed an object", function () {
-            var ctor = {};
-            _provider.with(ctor);
+            const ctor = {};
+            _provider.to(ctor);
 
             expect(_provider._dependency).toBe(ctor);
             expect(_provider._dependencyType).toEqual('proto');
         });
         it("should prepend _dependency to the _inject array of _post_provider if present", function () {
-            var ctor = {};
+            const ctor = {};
             _provider._post_provider = {_inject: []};
-            _provider.with(ctor);
+            _provider.to(ctor);
 
             expect(_provider._post_provider._inject[0]).toBe(ctor);
         });
-        it("should throw an error if argument is not a function or an object", function () { return; });
-        it("should throw an error if there already is a registered provider", function () { return; });
-        it("should return itself", function () { return; });
+        it("should throw an error if argument is not a function or an object");
+        it("should throw an error if there already is a registered provider");
+        it("should return itself");
     });
 
     describe("withProvider method", function () {
-        it("should register passed function as the provider for the dependency", function () { return; });
-        it("should throw an error if there already is a registered constructor or prototype", function () { return; });
-        it("should throw an error if passed argument is not a function", function () { return; });
-        it("should return itself", function () { return; });
+        it("should register passed function as the provider for the dependency");
+        it("should throw an error if there already is a registered constructor or prototype");
+        it("should throw an error if passed argument is not a function");
+        it("should return itself");
     });
 
     describe("withPostProvider method", function () {
-        it("should register passed function as a provider proxy on _post_provider property", function () { return; });
-        it("should register passed provider proxy on _post_provider property", function () { return; });
-        it("should default _inject to _inject on current provider proxy", function () { return; });
-        it("should prepend _dependency to the _inject array if present", function () { return; });
-        it("should throw an error if passed argument isn't a function nor a provider proxy", function () { return; });
-        it("should return itself", function () { return; });
+        it("should register passed function as a provider proxy on _post_provider property");
+        it("should register passed provider proxy on _post_provider property");
+        it("should default _inject to _inject on current provider proxy");
+        it("should prepend _dependency to the _inject array if present");
+        it("should throw an error if passed argument isn't a function nor a provider proxy");
+        it("should return itself");
     });
 };

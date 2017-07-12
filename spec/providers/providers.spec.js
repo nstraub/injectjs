@@ -1,17 +1,17 @@
 /*global describe*/
 /*global it*/
 /*global expect*/
-/*global createProviderProxyPrototype*/
-/*global proxy_provider_spec*/
-/*global provider_builder_spec*/
-/*global base_provider_spec*/
-/*global transient_provider_spec*/
-/*global singleton_provider_spec*/
-/*global state_provider_spec*/
-/*global root_provider_spec*/
-/*global parent_provider_spec*/
-"use strict";
-var providers_spec = function () {
+import createProviderProxyPrototype from '../../src/providers/provider.proxy';
+import proxy_provider_spec from './proxy.provider.spec';
+import provider_builder_spec from './provider.builder.spec';
+import base_provider_spec from './base.provider.spec';
+import transient_provider_spec from './transient.provider.spec';
+import singleton_provider_spec from './singleton.provider.spec';
+import state_provider_spec from './state.provider.spec';
+import root_provider_spec from './root.provider.spec';
+import parent_provider_spec from './parent.provider.spec';
+
+export default function () {
     describe("provider proxy prototype factory", function () {
         it("should throw an error when no stores object is passed", function () {
             expect(function () { createProviderProxyPrototype(); }).toThrowError("no stores object passed.");

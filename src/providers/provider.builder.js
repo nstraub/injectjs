@@ -1,11 +1,11 @@
-/* exported createProviderBuilderPrototype */
-/*global _*/
+import _isFunction from 'lodash.isfunction';
+import _isPlainObject from 'lodash.isplainobject';
+
 function createProviderBuilderPrototype(stores, providers) {
-    "use strict";
     return {
-        with: function (dependency) {
+        to: function (dependency) {
             this._dependency = dependency;
-            this._dependencyType = _.isFunction(dependency) ? 'ctor' : 'proto';
+            this._dependencyType = _isFunction(dependency) ? 'ctor' : 'proto';
             if (this._post_provider) {
                 this._post_provider._inject.unshift(dependency);
             }
@@ -43,7 +43,7 @@ function createProviderBuilderPrototype(stores, providers) {
                         name: dependency,
                         provider: stores.providers[dependency]
                     };
-                } else if (!_.isPlainObject(dependency)) {
+                } else if (!_isPlainObject(dependency)) {
                     throw new TypeError('dependency at index ' + index + ' is ' + Object.prototype.toString.call(dependency) + '. it should be either a string or an object');
                 }
                 if (dependency.static) {
@@ -57,4 +57,14 @@ function createProviderBuilderPrototype(stores, providers) {
             return this;
         }
     };
+}
+
+let ProviderBuilder = null;
+
+export default function (stores, providers) {
+    if (!ProviderBuilder) {
+        ProviderBuilder = createProviderBuilderPrototype(stores, providers)
+    }
+
+    return ProviderBuilder;
 }

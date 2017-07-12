@@ -2,7 +2,7 @@
 // Generated on Wed Oct 26 2016 04:06:47 GMT-0300 (Pacific SA Summer Time)
 
 module.exports = function (config) {
-    "use strict";
+
 
     config.set({
 

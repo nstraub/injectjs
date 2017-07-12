@@ -2,14 +2,16 @@
 /*global createProviderProxyPrototype*/
 /*global jasmine*/
 
-var stores = Object.create(null),
+import createProviderBuilderPrototype from '../../src/providers/provider.builder'
+import createProviderProxyPrototype from '../../src/providers/provider.proxy'
+import InjectJSFactory from '../../src/InjectJS';
+
+const stores = Object.create(null),
     providers = {},
-    ProviderBuilder,
-    ProviderProxy,
+    ProviderBuilder = createProviderBuilderPrototype(stores, providers),
+    ProviderProxy = createProviderProxyPrototype(stores, providers),
+    InjectJS = InjectJSFactory(stores),
     global_setup = function () {
-        "use strict";
-        ProviderBuilder = createProviderBuilderPrototype(stores, providers);
-        ProviderProxy = createProviderProxyPrototype(stores, providers);
 
         jasmine.addMatchers({
             toBeInstanceOf: function () {
@@ -28,10 +30,9 @@ var stores = Object.create(null),
         });
     },
     local_teardown = function () {
-        "use strict";
-        var key;
-        for (key in stores) {
+        for (let key in stores) {
             stores[key] = {};
         }
     };
 
+export {global_setup, local_teardown, stores, providers, ProviderBuilder, ProviderProxy, InjectJS};

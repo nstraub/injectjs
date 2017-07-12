@@ -1,6 +1,7 @@
-/*global resolve_method_spec*/
 /*global describe*/
-var InjectJS_spec = function () {
-    "use strict";
-    describe("resolve method", resolve_method_spec);
+import bind_method_spec from './bind.method.spec';
+
+export default function () {
+
+    describe("bind method", bind_method_spec);
 };

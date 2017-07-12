@@ -1,10 +1,8 @@
 /*global describe*/
 /*global it*/
 /*global expect*/
-var root_provider_spec = function () {
-    "use strict";
+export default function () {
 
-    describe("$get method", function () {
-        return;
-    });
+
+    describe("$get method", function () { });
 };
