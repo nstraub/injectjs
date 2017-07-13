@@ -1,5 +1,5 @@
 /*exported ProviderProxy*/
-export default function createProviderProxyPrototype(stores, providers) {
+function createProviderProxyPrototype(stores, providers) {
     if (!stores) {
         throw new TypeError("no stores object passed.");
     }
@@ -23,4 +23,16 @@ export default function createProviderProxyPrototype(stores, providers) {
     return {
         $get: function () { throw 'not implemented'; }
     };
+}
+
+let ProviderProxy = null;
+
+export {createProviderProxyPrototype};
+
+export default function (stores, providers) {
+    if (!ProviderProxy) {
+        ProviderProxy = createProviderProxyPrototype(stores, providers);
+    }
+
+    return ProviderProxy;
 }

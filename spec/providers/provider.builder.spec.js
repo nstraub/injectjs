@@ -1,4 +1,4 @@
-import {ProviderBuilder, providers} from '../util/setup.teardown';
+import {ProviderBuilder, ProviderProxy, providers} from '../util/setup.teardown';
 /*global describe*/
 /*global it*/
 /*global expect*/
@@ -8,7 +8,6 @@ import {ProviderBuilder, providers} from '../util/setup.teardown';
 /*global jasmine*/
 
 export default function () {
-    debugger;
     let _provider;
     beforeEach(function () {
         _provider = Object.create(ProviderBuilder);
@@ -139,7 +138,7 @@ export default function () {
         });
     });
 
-    describe("with method", function () {
+    describe("to method", function () {
         it("should register passed argument on _dependency as a constructor when passed a function", function () {
             const ctor = function () {
             };
@@ -162,24 +161,64 @@ export default function () {
 
             expect(_provider._post_provider._inject[0]).toBe(ctor);
         });
-        it("should throw an error if argument is not a function or an object");
-        it("should throw an error if there already is a registered provider");
-        it("should return itself");
+        it("should throw an error if argument is not a function or an object", function () {
+            expect(() => _provider.to('invalid')).toThrowError("Object or Function expected. 'invalid' is neither");
+        });
+        it("should throw an error if there already is a registered provider", function () {
+            _provider.to({});
+            expect(() => _provider.to({})).toThrowError("This interface is already bound to a type");
+        });
+        it("should return itself", function () {
+            expect(_provider.to({})).toBe(_provider);
+        });
     });
 
-    describe("withProvider method", function () {
-        it("should register passed function as the provider for the dependency");
-        it("should throw an error if there already is a registered constructor or prototype");
-        it("should throw an error if passed argument is not a function");
-        it("should return itself");
+    describe("toProvider method", function () {
+        it("should register passed function as the provider for the dependency", function () {
+            let provider = ()=>{};
+            _provider.toProvider(provider);
+            expect(_provider._dependency).toBeInstanceOf(ProviderProxy);
+            expect(_provider._dependency.$get).toBe(provider);
+            expect(_provider._dependencyType).toEqual("provider");
+        });
+        it("should throw an error if there already is a registered constructor or prototype", function () {
+            let provider = ()=>{};
+            _provider.to({});
+            expect(()=>_provider.toProvider(provider)).toThrowError("This interface is already bound to a type");
+        });
+        it("should throw an error if passed argument is not a function", function () {
+            expect(function () { _provider.toProvider('invalid'); }).toThrowError("function expected. 'invalid' is not a function");
+        });
+        it("should return itself", function () {
+            expect(_provider.toProvider(()=>{})).toBe(_provider);
+        });
     });
 
     describe("withPostProvider method", function () {
-        it("should register passed function as a provider proxy on _post_provider property");
-        it("should register passed provider proxy on _post_provider property");
-        it("should default _inject to _inject on current provider proxy");
-        it("should prepend _dependency to the _inject array if present");
-        it("should throw an error if passed argument isn't a function nor a provider proxy");
-        it("should return itself");
+        it("should register passed function as a provider proxy on _post_provider property", function () {
+            let provider = ()=>{};
+            _provider.withPostProvider(provider);
+
+            expect(_provider._post_provider).toBeInstanceOf(ProviderProxy);
+            expect(_provider._post_provider.$get).toBe(provider);
+        });
+        it("should register passed provider proxy on _post_provider property", function () {
+            let provider = Object.create(ProviderProxy);
+
+            _provider.withPostProvider(provider);
+            expect(_provider._post_provider).toBe(provider);
+        });
+        it("should default _inject to _inject on current provider proxy", function () {
+            _provider._inject = ['test', 'test2'];
+            _provider.withPostProvider(()=>{});
+
+            expect(_provider._post_provider._inject).toBe(_provider._inject);
+        });
+        it("should throw an error if passed argument isn't a function nor a provider proxy", function () {
+            expect(()=> _provider.withPostProvider('invalid')).toThrowError("ProviderProxy instance or Function expected. 'invalid' is neither")
+        });
+        it("should return itself", function () {
+            expect(_provider.withPostProvider(()=>{})).toBe(_provider);
+        });
     });
 };

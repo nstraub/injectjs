@@ -1,14 +1,23 @@
 import _isFunction from 'lodash.isfunction';
 import _isPlainObject from 'lodash.isplainobject';
+import InvalidOperationError from '../../src/util/invalid-operation-error';
+import getProviderProxy from '../../src/providers/provider.proxy';
 
 function createProviderBuilderPrototype(stores, providers) {
     return {
         to: function (dependency) {
+            if (this._dependency) {
+                throw new InvalidOperationError("This interface is already bound to a type");
+            }
+            if (!(_isFunction(dependency) || _isPlainObject(dependency))) {
+                throw new TypeError(`Object or Function expected. '${dependency}' is neither`);
+            }
             this._dependency = dependency;
             this._dependencyType = _isFunction(dependency) ? 'ctor' : 'proto';
             if (this._post_provider) {
                 this._post_provider._inject.unshift(dependency);
             }
+            return this;
         },
 
         withLifetime: function (lifetime_name) {
@@ -29,8 +38,33 @@ function createProviderBuilderPrototype(stores, providers) {
         asRoot: function () { return this.withLifetime('root'); },
         asParent: function () { return this.withLifetime('parent'); },
 
-        withProvider: function () { throw 'not implemented'; },
-        withPostProvider: function () { throw 'not implemented'; },
+        toProvider: function (provider) {
+            let ProviderProxy = getProviderProxy();
+            if (this._dependency) {
+                throw new InvalidOperationError("This interface is already bound to a type");
+            }
+            if (!_isFunction(provider)) {
+                throw new TypeError(`function expected. '${provider}' is not a function`);
+            }
+            this._dependency = Object.create(ProviderProxy);
+            this._dependency.$get = provider;
+            this._dependencyType = 'provider';
+            return this;
+        },
+        withPostProvider: function (provider) {
+            let ProviderProxy = getProviderProxy();
+            if (!(ProviderProxy.isPrototypeOf(provider) || _isFunction(provider))) {
+                throw new TypeError(`ProviderProxy instance or Function expected. '${provider}' is neither`)
+            }
+            if (ProviderProxy.isPrototypeOf(provider)) {
+                this._post_provider = provider;
+            } else {
+                this._post_provider = Object.create(ProviderProxy);
+                this._post_provider.$get = provider;
+            }
+            this._post_provider._inject = this._inject;
+            return this;
+        },
 
         dependsOn: function (dependencies) {
             if (!(dependencies instanceof Array)) {

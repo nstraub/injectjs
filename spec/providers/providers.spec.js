@@ -1,7 +1,7 @@
 /*global describe*/
 /*global it*/
 /*global expect*/
-import createProviderProxyPrototype from '../../src/providers/provider.proxy';
+import {createProviderProxyPrototype} from '../../src/providers/provider.proxy';
 import proxy_provider_spec from './proxy.provider.spec';
 import provider_builder_spec from './provider.builder.spec';
 import base_provider_spec from './base.provider.spec';
