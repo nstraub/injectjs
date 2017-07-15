@@ -1,4 +1,3 @@
-/*exported ProviderProxy*/
 function createProviderProxyPrototype(stores, providers) {
     if (!stores) {
         throw new TypeError("no stores object passed.");

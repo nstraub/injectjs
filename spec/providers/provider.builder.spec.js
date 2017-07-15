@@ -9,18 +9,21 @@ import {ProviderBuilder, ProviderProxy, providers} from '../util/setup.teardown'
 
 export default function () {
     let _provider;
-    beforeEach(function () {
-        _provider = Object.create(ProviderBuilder);
-    });
+    beforeEach(() => _provider = Object.create(ProviderBuilder));
+
     describe("lifetime methods", function () {
+
         describe("withLifetime method", function () {
+
             it("should set the appropriate lifetime provider", function () {
                 _provider.withLifetime('singleton');
                 expect(_provider._lifetime_provider).toBeInstanceOf(providers.singleton);
             });
+
             it("should throw an error if lifetime provider doesn't exist", function () {
                 expect(function () { _provider.withLifetime('nothing'); }).toThrowError("provider 'nothing' doesn't exist");
             });
+
             it("should call lifetime provider's _assert_usable method if present", function () {
                 providers.test = Object.create(providers.base);
                 providers.test._assert_usable = jasmine.createSpy();
@@ -30,6 +33,7 @@ export default function () {
                 expect(providers.test._assert_usable).toHaveBeenCalledTimes(1);
                 delete providers.test;
             });
+
             it("should return itself", function () {
                 expect(_provider.withLifetime('singleton')).toBe(_provider);
             });
@@ -40,53 +44,15 @@ export default function () {
                 _provider.withLifetime = jasmine.createSpy('withLifetime', function () { return _provider; }).and.callThrough();
             });
 
-            describe("asTransient method", function () {
-                it("should call withLifetime with appropriate lifetime provider name", function () {
-                    _provider.asTransient();
-                    expect(_provider.withLifetime).toHaveBeenCalledWith('transient');
-                });
-                it("should return itself", function () {
-                    expect(_provider.asTransient()).toBe(_provider);
-                });
-            });
-
-            describe("asSingleton method", function () {
-                it("should call withLifetime with appropriate lifetime provider name", function () {
-                    _provider.asSingleton();
-                    expect(_provider.withLifetime).toHaveBeenCalledWith('singleton');
-                });
-                it("should return itself", function () {
-                    expect(_provider.asSingleton()).toBe(_provider);
-                });
-            });
-
-            describe("asState method", function () {
-                it("should call withLifetime with appropriate lifetime provider name", function () {
-                    _provider.asState();
-                    expect(_provider.withLifetime).toHaveBeenCalledWith('state');
-                });
-                it("should return itself", function () {
-                    expect(_provider.asState()).toBe(_provider);
-                });
-            });
-
-            describe("asRoot method", function () {
-                it("should call withLifetime with appropriate lifetime provider name", function () {
-                    _provider.asRoot();
-                    expect(_provider.withLifetime).toHaveBeenCalledWith('root');
-                });
-                it("should return itself", function () {
-                    expect(_provider.asRoot()).toBe(_provider);
-                });
-            });
-
-            describe("asParent method", function () {
-                it("should call withLifetime with appropriate lifetime provider name", function () {
-                    _provider.asParent();
-                    expect(_provider.withLifetime).toHaveBeenCalledWith('parent');
-                });
-                it("should return itself", function () {
-                    expect(_provider.asParent()).toBe(_provider);
+            ['asTransient', 'asSingleton', 'asState', 'asRoot', 'asParent'].forEach(function (lifetimeMethod) {
+                describe(`${lifetimeMethod} method`, function () {
+                    it("should call withLifetime with appropriate lifetime provider name", function () {
+                        _provider[lifetimeMethod]();
+                        expect(_provider.withLifetime).toHaveBeenCalledWith(lifetimeMethod.substr(2).toLowerCase());
+                    });
+                    it("should return itself", function () {
+                        expect(_provider[lifetimeMethod]()).toBe(_provider);
+                    });
                 });
             });
         });

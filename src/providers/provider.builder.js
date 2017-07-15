@@ -51,8 +51,10 @@ function createProviderBuilderPrototype(stores, providers) {
             this._dependencyType = 'provider';
             return this;
         },
+
         withPostProvider: function (provider) {
             let ProviderProxy = getProviderProxy();
+
             if (!(ProviderProxy.isPrototypeOf(provider) || _isFunction(provider))) {
                 throw new TypeError(`ProviderProxy instance or Function expected. '${provider}' is neither`)
             }
