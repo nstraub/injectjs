@@ -7,7 +7,7 @@ function createProviderBuilderPrototype(stores, providers) {
     return {
         to: function (dependency) {
             if (this._dependency) {
-                throw new InvalidOperationError("This interface is already bound to a type");
+                throw new InvalidOperationError('This interface is already bound to a type');
             }
             if (!(_isFunction(dependency) || _isPlainObject(dependency))) {
                 throw new TypeError(`Object or Function expected. '${dependency}' is neither`);
@@ -22,7 +22,7 @@ function createProviderBuilderPrototype(stores, providers) {
 
         withLifetime: function (lifetime_name) {
             if (!providers[lifetime_name]) {
-                throw new ReferenceError("provider '" + lifetime_name + "' doesn't exist");
+                throw new ReferenceError('provider \'' + lifetime_name + '\' doesn\'t exist');
             }
 
             this._lifetime_provider = Object.create(providers[lifetime_name]);
@@ -41,7 +41,7 @@ function createProviderBuilderPrototype(stores, providers) {
         toProvider: function (provider) {
             let ProviderProxy = getProviderProxy();
             if (this._dependency) {
-                throw new InvalidOperationError("This interface is already bound to a type");
+                throw new InvalidOperationError('This interface is already bound to a type');
             }
             if (!_isFunction(provider)) {
                 throw new TypeError(`function expected. '${provider}' is not a function`);
@@ -56,7 +56,7 @@ function createProviderBuilderPrototype(stores, providers) {
             let ProviderProxy = getProviderProxy();
 
             if (!(ProviderProxy.isPrototypeOf(provider) || _isFunction(provider))) {
-                throw new TypeError(`ProviderProxy instance or Function expected. '${provider}' is neither`)
+                throw new TypeError(`ProviderProxy instance or Function expected. '${provider}' is neither`);
             }
             if (ProviderProxy.isPrototypeOf(provider)) {
                 this._post_provider = provider;
@@ -70,7 +70,7 @@ function createProviderBuilderPrototype(stores, providers) {
 
         dependsOn: function (dependencies) {
             if (!(dependencies instanceof Array)) {
-                throw new TypeError("array expected. '" + dependencies + "' is not an array");
+                throw new TypeError('array expected. \'' + dependencies + '\' is not an array');
             }
 
             dependencies.forEach(function (dependency, index) {
@@ -99,7 +99,7 @@ let ProviderBuilder = null;
 
 export default function (stores, providers) {
     if (!ProviderBuilder) {
-        ProviderBuilder = createProviderBuilderPrototype(stores, providers)
+        ProviderBuilder = createProviderBuilderPrototype(stores, providers);
     }
 
     return ProviderBuilder;

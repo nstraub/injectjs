@@ -1,4 +1,4 @@
 export default class BaseProvider {
     constructor () {}
-    $get () {throw 'not implemented'}
+    $get () {throw 'not implemented';}
 }

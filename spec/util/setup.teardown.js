@@ -1,9 +1,5 @@
-/*global createProviderBuilderPrototype*/
-/*global createProviderProxyPrototype*/
-/*global jasmine*/
-
-import createProviderBuilderPrototype from '../../src/providers/provider.builder'
-import createProviderProxyPrototype from '../../src/providers/provider.proxy'
+import createProviderBuilderPrototype from '../../src/providers/provider.builder';
+import createProviderProxyPrototype from '../../src/providers/provider.proxy';
 import InjectJSFactory from '../../src/InjectJS';
 
 const stores = Object.create(null),
@@ -19,7 +15,7 @@ const stores = Object.create(null),
                     compare: function (actual, expected) {
                         return {
                             message: function () {
-                                return "Expected " + actual.constructor.name + " is instance of " + expected.name;
+                                return 'Expected ' + actual.constructor.name + ' is instance of ' + expected.name;
                             },
                             pass: expected.isPrototypeOf(actual)
                         };

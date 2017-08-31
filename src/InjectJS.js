@@ -10,5 +10,5 @@ export default function (stores) {
             }
             return stores.providers[dependency_name] = Object.create(getProviderBuilder());
         }
-    }
-};
+    };
+}

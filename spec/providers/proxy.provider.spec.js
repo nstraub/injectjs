@@ -3,7 +3,7 @@
 /*global expect*/
 
 export default function () {
-    describe("$get method", function () {
-        it("should defer to dependency provider's $get method");
+    describe('$get method', function () {
+        it('should defer to dependency provider\'s $get method');
     });
-};
+}

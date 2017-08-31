@@ -4,5 +4,5 @@
 export default function () {
 
 
-    describe("$get method", function () { });
-};
+    describe('$get method', function () { });
+}

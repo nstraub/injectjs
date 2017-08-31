@@ -419,7 +419,7 @@ injector.noConflict()
 
 De-registers `hashchange` event for clearing state lifetime `types`.
 
-> **Note:** by default, InjectJS assumes your application is changing state (i.e. moving to another area of the application) every time the hash portion of the URL is changed. While this may be the default behaviour for most web sites, and is encouraged by most routers (like `Backbone`'s `routes`, `simrou`, `AngularJS ng-route`'s default behaviour), more and more sites are adopting HTML5 pushstate, and there are quite a few SPA's which don't use the hash at all. for those sites, you should call this method and then register a handler for your particular state change that calls `injector.clearState`
+> **Note:** by default, InjectJS assumes your application is changing state (i.e. moving to another area of the application) every time the hash portion of the URL is changed. While this may be the default behaviour for most web sites, and is encouraged by most routers (like `Backbone`'s `routes`, `simrou`, `AngularJS ng-route`'s default behaviour), more and more sites are adopting HTML5 pushState, and there are quite a few SPA's which don't use the hash at all. for those sites, you should call this method and then register a handler for your particular state change that calls `injector.clearState`
 
 **signature**
 

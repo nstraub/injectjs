@@ -1,10 +1,10 @@
 function createProviderProxyPrototype(stores, providers) {
     if (!stores) {
-        throw new TypeError("no stores object passed.");
+        throw new TypeError('no stores object passed.');
     }
 
     if (!providers) {
-        throw new TypeError("no providers object passed.");
+        throw new TypeError('no providers object passed.');
     }
 
 

@@ -1,6 +1,5 @@
 .idea
 .vs
-bower_components
 coverage
 node_modules
 package-lock.json

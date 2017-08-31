@@ -1,23 +1,18 @@
-const webpack = require('webpack');
-
 module.exports = {
     entry: {
-        main: './src/main.js'
+        main: './spec/main.js'
     },
     output: {
-        path: './build',
         libraryTarget: 'umd',
-        filename: 'bundle.js'
+        filename: 'build/bundle.js'
     },
     module: {
         rules: [
             {
-                test: /src.*\.js$/,
-                loader: 'isparta-loader',
-                exclude: /node_modules|\.spec\.js$/
+                test: /\.js$/,
+                loader: 'babel-loader'
             }
         ]
 
-    },
-    devtool: 'inline-source-map'
+    }
 };
