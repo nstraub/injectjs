@@ -1,6 +1,6 @@
 // Karma configuration
 // Generated on Thu Feb 23 2017 01:10:14 GMT-0300 (Pacific SA Summer Time)
-
+const path = require('path');
 module.exports = function (config) {
     config.set(
         {
@@ -27,16 +27,17 @@ module.exports = function (config) {
             // preprocess matching files before serving them to the browser
             // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
             preprocessors: {
-                './spec/main.js': ['webpack']
+                './spec/main.js': ['webpack', 'sourcemap']
             },
             webpack: {
+                devtool: 'inline-source-map',
+                resolve: {modules: [path.resolve(__dirname, 'src'), 'node_modules']},
                 module: {
                     rules: [
                         {
                             test: /\.js$/,
                             loader: 'babel-loader',
-                            options: { plugins: [['istanbul', {exclude: ['spec']}]] },
-                            enforce: 'post'
+                            options: { plugins: [['istanbul', {exclude: ['spec']}]],  }
                         }
                     ]
 
