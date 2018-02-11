@@ -20,7 +20,7 @@ export default function() {
 
     it('gets the type for a requested dependency', () => expect(injector.getType('test')).toBe(injector.types.test.type));
 
-    it('returns null when requested dependency isn`t registered', () => expect(injector.getType('nothing')).toBeNull());
+    it('returns null when requested dependency isn`t registered', () => expect(injector.getType('nothing')).toBeUndefined());
 
     return it('prioritizes fakes over types', function() {
         let fake_type;

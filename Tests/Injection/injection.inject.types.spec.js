@@ -164,8 +164,8 @@ export default function() {
     );
 
     return describe('relaxed dependency providers', function() {
-        beforeAll(() => injector.strict_dependency_providers = false);
-        afterAll(() => injector.strict_dependency_providers = true);
+        beforeAll(() => injector.mode.strict = false);
+        afterAll(() => injector.mode.strict = true);
 
         return it('allows non-existent dependencies', () => expect(() => injector.inject(nonexistent=> nonexistent)()).not.toThrow());
     });

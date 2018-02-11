@@ -5,7 +5,7 @@ import {
     registration_register_spec, registration_register_type_spec
 }                                                                             from './Registration';
 import setup                                                                  from './_setup/inject.spec.setup';
-import {utility_extend_spec, utility_get_type_spec} from './Utility';
+import {utility_get_type_spec} from './Utility';
 import {
     lifetimes_parent_spec, lifetimes_root_spec, lifetimes_singleton_spec, lifetimes_state_spec,
     lifetimes_transient_spec
@@ -47,7 +47,7 @@ describe('injector', function () {
                 hashCode: 1,
                 name: 'test type',
                 type: this.test_type,
-                dependencies: null,
+                dependencies: undefined,
                 lifetime: 'transient'
             };
         });
@@ -65,8 +65,6 @@ describe('injector', function () {
 
 
     describe('getType', utility_get_type_spec);
-
-    describe('extend', utility_extend_spec);
 
     describe('injection', function () {
         describe('circular references', circular_reference_spec);

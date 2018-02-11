@@ -1,10 +1,11 @@
 import injector from '../instantiate.injector';
+import {uuid}   from '../../src/util';
 const lifetimes = ['transient', 'root', 'state', 'singleton', 'parent'];
 
 
 export default {
     reset_injector() {
-        injector.currentHashCode = 1;
+        uuid.reset();
         injector.types = {};
         injector.providers = {};
         injector.fakes = {};
@@ -17,7 +18,7 @@ export default {
 
     },
     next_hash() {
-        return injector.currentHashCode++;
+        return uuid.getNext();
     },
     make_descriptor(options) {
         const val = options.target,

@@ -1,10 +1,8 @@
-import Injector from './inject.constructor';
+import Injector  from './inject.constructor';
+import {harness} from './testing';
 
 Injector.prototype.harness = function (func) {
-    var _this = this;
-    return function (adhoc_dependencies) {
-        return _this.inject(func)(adhoc_dependencies);
-    };
+    return harness(this, func);
 };
 
 Injector.prototype.removeFake = function (name) {

@@ -1,5 +1,7 @@
-import injector from '../instantiate.injector';
-import {setup} from '../_setup';
+import injector   from '../instantiate.injector';
+import {setup}    from '../_setup';
+import {uuid}     from '../../src/util';
+import {register} from '../../src/registration';
 
 export default function() {
     beforeEach(() => setup.reset_injector());
@@ -20,7 +22,7 @@ export default function() {
         expect(injector.types.test_type_2.hashCode).toBe(2);
         expect(injector.types.test_type_3.hashCode).toBe(3);
 
-        return expect(injector.currentHashCode).toBe(4);
+        return expect(uuid.getNext()).toBe(4);
     });
 
     it('sets empty dependencies when type has no dependencies', function() {
@@ -28,22 +30,22 @@ export default function() {
         this.test_result.lifetime = 'singleton';
         return expect(injector.types['test type']).toEqual(this.test_result);
     });
-    it('throws an error when no name is passed', function() {expect(() =>  injector.registerType(this.test_type)).toThrow('Type must have a name');});
+    it('throws an error when no name is passed', function() {expect(() =>  injector.registerType(this.test_type)).toThrowError('Type must have a name');});
 
-    it('throws an error when name is empty string', function () {expect(() => injector.registerType('', this.test_type)).toThrow('Type must have a name');});
+    it('throws an error when name is empty string', function () {expect(() => injector.registerType('', this.test_type)).toThrowError('Type must have a name');});
 
     it('throws an error when no type is passed', function () {
-        return expect(() => injector.registerType('no type')).toThrow('no type was passed');
+        return expect(() => injector.registerType('no type')).toThrowError('no type was passed');
     });
 
-    it('throws an error when last item in type array isn`t a function', () => expect(() => injector.registerType('no type', ['test dependency'])).toThrow('no type was passed'));
+    it('throws an error when last item in type array isn`t a function', () => expect(() => injector.registerType('no type', ['test dependency'])).toThrowError('no type was passed'));
 
     it('throws an error when type isn`t a function nor an array', () => expect(() => injector.registerType('no type', 'invalid type')).toThrow('type must be a function or an array'));
 
     it('throws an error when an invalid where is passed', function () {
         expect(() => {
-            injector._register('invalid where', 'test type', this.test_type);
-        }).toThrow('invalid destination "invalid where" provided. Valid destinations are types, providers and fakes');
+            register(injector, 'invalid where', 'test type', this.test_type);
+        }).toThrowError('invalid destination "invalid where" provided. Valid destinations are types, providers and fakes');
     });
 
     describe('without a dependency array', function() {
@@ -115,7 +117,7 @@ export default function() {
             const array_notation = ['test_dependency', 'test_dependency_2', this.test_type];
             array_notation.$inject = ['test_dependency', 'test_dependency_2'];
 
-            return expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrow(
+            return expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrowError(
               'passed type cannot have both array notation and the $inject property populated');
         });
 
@@ -125,7 +127,7 @@ export default function() {
 
             const array_notation = ['test_dependency', 'test_dependency_2', this.test_type];
 
-            return expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrow(
+            return expect(() => injector.registerType('test type', array_notation, 'singleton')).toThrowError(
               'passed type cannot have both array notation and the $inject property populated');
         });
 

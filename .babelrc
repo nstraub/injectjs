@@ -1,5 +1,5 @@
 {
-  "plugins": ["lodash"],
+  "plugins": ["lodash", "ramda"],
   "presets": ["env"]
 
 }

@@ -1,3 +1,5 @@
+import {mode} from './providers/map-dependencies';
+
 export default function Injector() {
     this.types = {};
     this.providers = {};
@@ -13,4 +15,4 @@ Injector.prototype.roots = {};
 
 Injector.prototype.currentHashCode = 1;
 
-Injector.prototype.strict_dependency_providers = true;
+Injector.prototype.mode = mode;
