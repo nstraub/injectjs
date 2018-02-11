@@ -1,6 +1,6 @@
-/* globals Injector: false */
-/* globals lifetimes: false */
-/* globals get_dependency_names*/
+import Injector               from './inject.constructor';
+import {lifetimes}            from './inject';
+import {get_dependency_names} from './inject.util';
 
 function assertLifetime (lifetime) {
     if (!~lifetimes.indexOf(lifetime)) {

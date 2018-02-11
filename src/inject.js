@@ -1,12 +1,10 @@
-/* globals Injector: false */
-/* globals window: false */
-/* exported lifetimes */
-/* exported old_injector */
-/* globals get_dependency_names*/
+import Injector               from './inject.constructor';
+import {get_dependency_names} from './inject.util';
+import _ from 'lodash';
 
-var lifetimes = ['singleton', 'transient', 'root', 'parent', 'state'];
+export const lifetimes = ['singleton', 'transient', 'root', 'parent', 'state'];
 
-var old_injector = window.injector;
+export const old_injector = window.injector;
 
 Injector.prototype._build_anonymous_descriptor = function (name) { // for when inject is called with an anonymous function
     if (typeof name === 'function') {
@@ -122,10 +120,10 @@ Injector.prototype._provider_getter = function (item, template) {
             return function (adhoc_dependencies) {
                 var template_clone = _.cloneDeepWith(template, function(value, key) {
                     switch (key) {
-                        case 'root': return value;
-                        case 'children': return {};
-                        case 'hashCode': return ++_this.currentHashCode;
-                        default: return;
+                    case 'root': return value;
+                    case 'children': return {};
+                    case 'hashCode': return ++_this.currentHashCode;
+                    default: return;
                     }
                 });
                 template_clone.parent = template.parent;

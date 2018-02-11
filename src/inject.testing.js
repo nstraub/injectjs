@@ -1,4 +1,5 @@
-/* global Injector */
+import Injector from './inject.constructor';
+
 Injector.prototype.harness = function (func) {
     var _this = this;
     return function (adhoc_dependencies) {

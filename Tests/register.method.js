@@ -1,2 +1,2 @@
 /* exported injector */
-var injector = 'test conflict injector';
+window.injector = 'test conflict injector';

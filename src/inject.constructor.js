@@ -1,5 +1,4 @@
-/* exported Injector */
-function Injector() {
+export default function Injector() {
     this.types = {};
     this.providers = {};
     this.fakes = {};

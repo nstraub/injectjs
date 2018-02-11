@@ -1,10 +1,7 @@
-/* globals Injector: false */
-/* globals old_injector: false */
-/* globals angular: false */
-/* globals window: false */
-/* exported get_dependency_names*/
+import Injector       from './inject.constructor';
+import _              from 'lodash';
 
-var get_dependency_names = (function () {
+export const get_dependency_names = (function () {
     var dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/;
     var separatorPattern = /, ?/;
 
@@ -38,10 +35,6 @@ Injector.prototype.extend = function (parent, child) {
     } else {
         child.prototype = this.get(parent);
     }
-};
-
-Injector.prototype.noConflict = function () {
-    window.injector = old_injector;
 };
 
 /*-------------------

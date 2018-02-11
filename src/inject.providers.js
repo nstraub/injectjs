@@ -1,8 +1,5 @@
-/* globals Injector: false */
-/* globals _: false */
-/* globals window: false */
-/* globals jasmine: false */
-
+import Injector from './inject.constructor';
+import _ from 'lodash';
 
 function map_dependencies(adhoc_dependencies, graph, injector_instance) {
     var _this = this;
@@ -124,16 +121,16 @@ Injector.prototype._provide_parent = function (descriptor) {
             provider_name = 'provide_provider';
         } else {
             switch (descriptor.lifetime) {
-                case 'singleton':
-                    provider_name = 'provide_cached';
-                    cache = singletons;
-                    break;
-                case 'state':
-                    provider_name = 'provide_cached';
-                    cache = this.state;
-                    break;
-                default:
-                    provider_name = 'provide_' + descriptor.lifetime;
+            case 'singleton':
+                provider_name = 'provide_cached';
+                cache = singletons;
+                break;
+            case 'state':
+                provider_name = 'provide_cached';
+                cache = this.state;
+                break;
+            default:
+                provider_name = 'provide_' + descriptor.lifetime;
             }
         }
         item = this['_' + provider_name](descriptor, cache);
