@@ -17,7 +17,8 @@ export default function () {
             dependencies: [],
             lifetime: 'transient',
             hashCode: 2
-        };
+        },
+        providerFn = function () {};
 
     beforeEach(function () {
         props = {
@@ -29,6 +30,8 @@ export default function () {
         registerStub = sinon.stub(registerModule, 'default');
         registerStub.withArgs('test', typeFn, 'transient')
             .returns(newDescriptor);
+
+        registerStub.withArgs('test::provider', providerFn).returns('testprovider');
 
         assertLifetimeStub = sinon.stub(assertLifetimeModule, 'default');
     });
@@ -45,10 +48,9 @@ export default function () {
     });
 
     it('should assign to the descriptor`s provider when passed one', function () {
-        registerInstantiable(props.types, 'test', typeFn, 'transient', function () {
-        });
+        registerInstantiable(props.types, 'test', typeFn, 'transient', providerFn);
 
         expect(props.types.test).toBe(newDescriptor);
-        expect(props.types.test.provider).not.toBeUndefined();
+        expect(props.types.test.provider).toBe('testprovider');
     });
 }

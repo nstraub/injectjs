@@ -11,7 +11,7 @@ export const defaultFactory = {
     createSpec(descriptor) {
         return {
             id: ++i,
-            dependencySpecs: [
+            dependencies: [
                 {id: ++i, provider: () => () => 5, descriptor: 'test'},
                 {id: ++i, provider: () => () => 3, descriptor: 'test2'}
             ],
@@ -36,7 +36,7 @@ export const providerFactory = {
     createSpec(descriptor) {
         return {
             id: ++i,
-            dependencySpecs: [
+            dependencies: [
                 {id: ++i, provider: () => () => 5, descriptor: 'test'},
                 {id: ++i, provider: () => () => 3, descriptor: 'test2'}
             ],

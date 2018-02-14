@@ -1,4 +1,4 @@
-import injector from '../instantiate.injector';
+
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 
 export default () =>

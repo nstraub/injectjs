@@ -1,16 +1,13 @@
-import injector from '../instantiate.injector';
+
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 import sinon from 'sinon';
-
+let injector;
 export default function() {
     beforeEach(function() {
-        setup.reset_injector();
+        injector = setup.reset_injector();
         setup.assign_base_types();
         setup.assign_basic_dependent_types();
-        return sinon.spy(injector, '_build_provider');
     });
-
-    afterEach(() => injector._build_provider.restore());
 
     describe('basic dependency-less caching', () =>
         lifetimes.map((lifetime) =>

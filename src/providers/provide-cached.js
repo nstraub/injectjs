@@ -7,11 +7,14 @@ export default function (descriptor, cache, ...args) {
     if (!cache[name]) {
         let dependency_to_cache = provideTransient(descriptor, ...args);
 
-        dependency_to_cache.instance = dependency_to_cache.provider();
+        let transientProvider = dependency_to_cache.provider;
         dependency_to_cache.provider = function () {
+            dependency_to_cache.instance = transientProvider.call(this);
+            dependency_to_cache.provider = function () {
+                return dependency_to_cache.instance;
+            };
             return dependency_to_cache.instance;
         };
-
         cache[name] = dependency_to_cache;
     }
     return cache[name];

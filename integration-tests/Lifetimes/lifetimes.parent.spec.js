@@ -1,8 +1,9 @@
-import injector from '../instantiate.injector';
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 
+let injector;
 export default function() {
     beforeEach(function() {
+        injector = setup.reset_injector();
         setup.make_descriptor({
             name: 'parent_dependency',
             lifetime: 'parent'
@@ -14,42 +15,37 @@ export default function() {
         setup.make_descriptor({
             name: 'third_level_dependency',
             dependencies: ['parent_dependency'],
-            type(parent) { this.parent = parent; }
+            type(parent_dependency) { this.parent = parent; }
         });
         setup.make_descriptor({
             name: 'third_level_dependency2',
             dependencies: ['parent_dependency', 'root_dependency'],
-            type(parent, root) { this.parent = parent; this.root = root; }
+            type(parent_dependency, root_dependency) { this.parent = parent; this.root = root; }
         });
         setup.make_descriptor({
             name: 'second_level_dependency',
             dependencies: ['third_level_dependency'],
-            type(third) { this.third = third; }
+            type(third_level_dependency) { this.third = third_level_dependency; }
         });
         setup.make_descriptor({
             name: 'second_level_dependency2',
             dependencies: ['third_level_dependency', 'parent_dependency'],
-            type(third, parent) { this.third = third; this.parent = parent; }
+            type(third_level_dependency, parent_dependency) { this.third = third_level_dependency; this.parent = parent_dependency; }
         });
         setup.make_descriptor({
             name: 'second_level_dependency3',
             dependencies: ['third_level_dependency2', 'root_dependency'],
-            type(third, root) { this.third = third; this.root = root; }
-        });
-        setup.make_descriptor({
-            name: 'base_type',
-            dependencies: ['second_level_dependency', 'second_level_dependency2', 'second_level_dependency2'],
-            type(second, second2, second3) { this.second = second; this.second2 = second2; this.second3 = second3; }
+            type(third_level_dependency2, root_dependency) { this.third = third_level_dependency2; this.root = root; }
         });
         setup.make_descriptor({
             name: 'base_parent_type',
             dependencies: ['second_level_dependency2', 'parent_dependency'],
-            type(second, parent) { this.second = second; this.parent = parent; }
+            type(second_level_dependency2, parent_dependency) { this.second = second_level_dependency2; this.parent = parent; }
         });
         return setup.make_descriptor({
             name: 'base_type_with_roots',
             dependencies: ['second_level_dependency2', 'second_level_dependency3', 'third_level_dependency2'],
-            type(second2, second3, third) { this.second2 = second2; this.second3 = second3; this.third = third; }
+            type(second_level_dependency2, second_level_dependency3, third_level_dependency2) { this.second2 = second_level_dependency2; this.second3 = second_level_dependency3; this.third = third_level_dependency2; }
         });
     });
 

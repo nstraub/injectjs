@@ -7,7 +7,7 @@ export default function (targetStore, name, type, lifetime, provider) {
     let newDescriptor = register(name, type, lifetime);
 
     if (provider) {
-        newDescriptor.provider = provider;
+        newDescriptor.provider = register(name + '::provider', provider);
     }
     targetStore[name] = newDescriptor;
 }

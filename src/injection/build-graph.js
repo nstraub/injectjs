@@ -25,6 +25,6 @@ export default function (descriptor, runtimeStores, parent, root) {
     });
 
     spec.dependencies = dependency_specs;
-    return spec;
 
+    return spec;
 }

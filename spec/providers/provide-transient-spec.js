@@ -57,8 +57,8 @@ export default function () {
             transientDescriptor.provider = providerDescriptor;
             let spec = provideTransient(transientDescriptor);
             expect(spec).toBe(providerSpec);
-            expect(spec.dependencySpecs.length).toEqual(3);
-            expect(spec.dependencySpecs[0]).toBe(transientSpec);
+            expect(spec.dependencies.length).toEqual(3);
+            expect(spec.dependencies[0]).toBe(transientSpec);
             stub.restore();
         });
     });

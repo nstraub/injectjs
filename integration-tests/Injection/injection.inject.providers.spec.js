@@ -1,57 +1,25 @@
-import injector from '../instantiate.injector';
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 import sinon from 'sinon';
+
+let injector;
 export default function() {
     let test_provider_spy = null;
     let test_provider_dependency_stub = null;
 
     beforeEach(function() {
-        setup.reset_injector();
+        injector = setup.reset_injector();
         test_provider_spy = sinon.spy();
         test_provider_dependency_stub = sinon.stub();
         test_provider_dependency_stub.returns('test');
-        return injector.providers = {
-            test_provider: {
-                name: 'test_provider',
-                dependencies: null,
-                type: test_provider_spy
-            },
-            test_provider_dependency: {
-                name: 'test_provider_dependency',
-                dependencies: null,
-                type: test_provider_dependency_stub
-            },
-            test_this_provider: {
-                name: 'test_this_provider',
-                type() { return this; },
-                dependencies: null
-            },
-            adhoc_test_provider: {
-                name: 'adhoc_test_provider',
-                type(test_provider_dependency, adhoc_dependency) { return [test_provider_dependency, adhoc_dependency]; },
-                dependencies: ['test_provider_dependency', 'adhoc_dependency']
-            },
-            a: {
-                name: 'a',
-                type() { return 1; },
-                dependencies: null
-            },
-            c: {
-                name: 'c',
-                type() { return 3; },
-                dependencies: null
-            },
-            e: {
-                name: 'e',
-                type() { return 5; },
-                dependencies: null
-            },
-            adhoc_ordered_test_provider: {
-                name: 'adhoc_ordered_test_provider',
-                type(f,e,c,d,b,a) { return [f,e,d,c,b,a]; },
-                dependencies: ['f','e','c','d','b','a']
-            }
-        };});
+        injector.registerProvider('test_provider', test_provider_spy);
+        injector.registerProvider('test_provider_dependency', test_provider_dependency_stub);
+        injector.registerProvider('test_this_provider', function () { return this; });
+        injector.registerProvider('adhoc_test_provider', function(test_provider_dependency, adhoc_dependency) { return [test_provider_dependency, adhoc_dependency]; });
+        injector.registerProvider('a', function (){return 1;});
+        injector.registerProvider('c', function (){return 3;});
+        injector.registerProvider('e', function (){return 5;});
+        injector.registerProvider('adhoc_ordered_test_provider', function(f,e,c,d,b,a) { return [f,e,d,c,b,a]; });
+    });
 
     it('gets a provider using caller`s context', function() {
         const provider = injector.inject('test_this_provider').call(this);

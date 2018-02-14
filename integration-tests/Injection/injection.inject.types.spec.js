@@ -1,11 +1,11 @@
-import injector from '../instantiate.injector';
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 import sinon from 'sinon';
 
+let injector;
 export default function() {
     describe('basic types', function() {
         beforeAll(function() {
-            setup.reset_injector();
+            injector = setup.reset_injector();
             setup.assign_base_types();
             return setup.assign_basic_dependent_types();
         });
@@ -38,7 +38,7 @@ export default function() {
 
     describe('passive providers', function() {
         beforeAll(function() {
-            setup.reset_injector();
+            injector = setup.reset_injector();
             return setup.assign_passive_types();
         });
 
@@ -88,9 +88,10 @@ export default function() {
     });
 
 
+/*
     describe('anonymous types', function() {
         beforeAll(function() {
-            setup.reset_injector();
+            injector = setup.reset_injector();
             return setup.assign_base_types();
         });
 
@@ -161,15 +162,9 @@ export default function() {
 
     it('throws an error when provided dependency has unregistered dependencies', () =>
         expect(() => injector.inject(nonexistent=> nonexistent)()).toThrow('There is no dependency named "nonexistent" registered.')
-    );
-
-    return describe('relaxed dependency providers', function() {
-        beforeAll(() => injector.mode.strict = false);
-        afterAll(() => injector.mode.strict = true);
-
-        return it('allows non-existent dependencies', () => expect(() => injector.inject(nonexistent=> nonexistent)()).not.toThrow());
-    });
+    );*/
 };
+
 
 function __in__(needle, haystack) {
   return Array.from(haystack).indexOf(needle) >= 0;

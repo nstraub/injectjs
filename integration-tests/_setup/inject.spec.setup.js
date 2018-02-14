@@ -1,116 +1,97 @@
-import injector from '../instantiate.injector';
-import {uuid}   from '../../src/util';
+import {createInjector} from '../../src/index';
+import {uuid}           from '../../src/util';
+
+
 const lifetimes = ['transient', 'root', 'state', 'singleton', 'parent'];
 
-
+let injector;
 export default {
     reset_injector() {
         uuid.reset();
-        injector.types = {};
-        injector.providers = {};
-        injector.fakes = {};
-        this.reset_injector_cache();
-
-    },
-    reset_injector_cache() {
-        injector.cache = {};
-        injector.state = {};
-
+        return injector = createInjector();
     },
     next_hash() {
         return uuid.getNext();
     },
     make_descriptor(options) {
-        const val = options.target,
-            target = val != null ? val : 'types',
-            {name} = options,
-            val1 = options.lifetime,
-            lifetime = val1 != null ? val1 : target === 'types' ? 'transient' : undefined,
-            val2 = options.type,
-            type = val2 != null ? val2 : function () {
-            },
-            {
-                dependencies,
-                provider
-            } = options;
+        let target = options.target,
+            {name, provider, type} = options,
+            lifetime = options.lifetime;
 
-        injector[target][name] = {
-            name,
-            type,
-            hashCode: this.next_hash(),
-            dependencies,
-            lifetime,
-            provider
-        };
+        switch (target) {
+            case 'providers':
+                target = 'registerProvider';
+                break;
+            case 'fakes':
+                target = 'registerFake';
+                break;
+            default:
+                target = 'registerType';
+        }
 
+        if (type === undefined) {
+            type = function () {
+            };
+        }
+
+        injector[target](name, type, lifetime, provider);
     },
     assign_base_types() {
         for (let lifetime of lifetimes) {
-            this.make_descriptor({name: `base_${lifetime}_type`, lifetime});
+            injector.registerType(`base_${lifetime}_type`, function () {
+            }, lifetime);
         }
 
     },
 
     assign_base_providers() {
-        this.make_descriptor({target: 'providers', name: 'base_provider'});
-        this.make_descriptor({
-            target: 'providers', name: 'provider_returns_context', type() {
-                return this;
-            }
+        injector.registerProvider('base_provider', function () {
         });
-
+        injector.registerProvider('provider_returns_context', function () {
+            return this;
+        });
     },
 
     assign_passive_types() {
         for (let lifetime of lifetimes) {
-            this.make_descriptor({
-                name: `passive_${lifetime}_type`,
-                lifetime,
-                provider: `passive_${lifetime}_provider`
+            injector.registerType(`passive_${lifetime}_type`, function () {
+            }, lifetime, function (type) {
+                type.passively_provided = true;
+                return type;
             });
-            this.make_descriptor({
-                name: `passive_${lifetime}_type_with_anon_provider`,
-                lifetime,
-                provider(type) {
+            injector.registerType(`passive_${lifetime}_type_with_anon_provider`, function () {
+            }, lifetime, function (type) {
+                type.passively_provided = true;
+                return type;
+            });
+            injector.registerType(`passive_${lifetime}_type_with_anon_array`, function () {
+            }, lifetime, [
+                'type', function (type) {
                     type.passively_provided = true;
                     return type;
                 }
-            });
-            this.make_descriptor({
-                name: `passive_${lifetime}_type_with_anon_array`,
-                lifetime,
-                provider: ['type', function (type) {
-                    type.passively_provided = true;
-                    return type;
-                }
-                ]
-            });
-
-            this.make_descriptor({
-                target: 'providers',
-                name: `passive_${lifetime}_provider`,
-                type(type) {
-                    type.passively_provided = true;
-                    return type;
-                },
-                dependencies: [`passive_${lifetime}_type`]
-            });
+            ]);
         }
 
     },
 
     assign_basic_dependent_types() {
         for (let lifetime of lifetimes) {
-            for (let dependency_lifetime of lifetimes) {
-                this.make_descriptor({
-                    name: lifetime + '_depends_on_' + dependency_lifetime,
-                    lifetime,
-                    type(dependency) {
-                        this.dependency = dependency;
-                    },
-                    dependencies: [`base_${dependency_lifetime}_type`]
-                });
-            }
+            injector.registerType(lifetime + '_depends_on_transient', function (base_transient_type) {
+                this.dependency = base_transient_type;
+            }, lifetime);
+            injector.registerType(lifetime + '_depends_on_state', function (base_state_type) {
+                this.dependency = base_state_type;
+            }, lifetime);
+            injector.registerType(lifetime + '_depends_on_parent', function (base_parent_type) {
+                this.dependency = base_parent_type;
+            }, lifetime);
+            injector.registerType(lifetime + '_depends_on_root', function (base_root_type) {
+                this.dependency = base_root_type;
+            }, lifetime);
+            injector.registerType(lifetime + '_depends_on_singleton', function (base_singleton_type) {
+                this.dependency = base_singleton_type;
+            }, lifetime);
         }
 
     },
@@ -120,26 +101,30 @@ export default {
         return (() => {
             const result = [];
             for (var lifetime of lifetimes) {
-                this.make_descriptor({
-                    lifetime,
-                    name: lifetime + '_provides_context',
-                    dependencies: ['provider_returns_context'],
-                    type(dependency) {
-                        this.dependency = dependency;
-                    }
-                });
-                result.push(lifetimes.map((dependency_lifetime) => {
-                    return this.make_descriptor({
-                        lifetime,
-                        name: lifetime + '_provides_context_through_' + dependency_lifetime,
-                        dependencies: [dependency_lifetime + '_provides_context'],
-                        type(dependency) {
-                            this.dependency = dependency;
-                        }
-                    });
-                }));
+                injector.registerType(lifetime + '_provides_context', function (provider_returns_context) {
+                    this.dependency = provider_returns_context;
+                }, lifetime);
+                result.push(injector.registerType(lifetime + '_provides_context_through_transient', function (transient_provides_context) {
+                        this.dependency = transient_provides_context;
+                    }, lifetime)
+                );
+                result.push(injector.registerType(lifetime + '_provides_context_through_root', function (root_provides_context) {
+                        this.dependency = root_provides_context;
+                    }, lifetime)
+                );
+                result.push(injector.registerType(lifetime + '_provides_context_through_state', function (state_provides_context) {
+                        this.dependency = state_provides_context;
+                    }, lifetime)
+                );
+                result.push(injector.registerType(lifetime + '_provides_context_through_singleton', function (singleton_provides_context) {
+                        this.dependency = singleton_provides_context;
+                    }, lifetime)
+                );
+                result.push(injector.registerType(lifetime + '_provides_context_through_parent', function (parent_provides_context) {
+                        this.dependency = parent_provides_context;
+                    }, lifetime)
+                );
             }
-            return result;
         })();
     }
 };

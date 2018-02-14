@@ -1,9 +1,9 @@
-import injector from '../instantiate.injector';
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 
+let injector;
 export default function() {
     beforeAll(function() {
-        setup.reset_injector();
+        injector = setup.reset_injector();
         return setup.assign_context_dependent_types();
     });
 
@@ -30,7 +30,7 @@ export default function() {
         beforeAll(() => setup.assign_base_types());
         it('returns the type`s provider when ::provider suffix is passed', function() {
             const provider = injector.get('base_transient_type::provider');
-            return expect(provider()).toBeInstanceOf(injector.types.base_transient_type.type);
+            return expect(provider()).toBeInstanceOf(injector.getType('base_transient_type'));
         });
         it('doesn`t interfere with parent lifetime in dependency tree', function() {
             setup.assign_passive_types();
@@ -41,7 +41,7 @@ export default function() {
 
             setup.make_descriptor({
                 name: 'transient1',
-                type(parent_lifetime) { this.parent_lifetime = parent_lifetime; },
+                type(passive_parent_type) { this.parent_lifetime = passive_parent_type; },
                 dependencies: ['passive_parent_type']});
 
             const provider = injector.get('base_type::provider');
@@ -54,26 +54,23 @@ export default function() {
             setup.assign_passive_types();
             setup.make_descriptor({
                 name: 'base_type',
-                type(root_provider) { this.root_provider = root_provider; },
+                type(root1) { this.root_provider = root1; },
                 dependencies: ['root1::provider']});
 
             setup.make_descriptor({
                 name: 'root1',
-                type(parent_lifetime) { this.parent_lifetime = parent_lifetime; },
+                type(passive_parent_type) { this.parent_lifetime = passive_parent_type; },
                 dependencies: ['passive_parent_type'],
                 lifetime: 'root'
             });
 
-            const base1 = injector.get('base_type');
-            const base2 = injector.get('base_type');
-
-            const type1 = base1.root_provider();
-            const type2 = base2.root_provider();
-            return expect(type1.parent_lifetime).not.toBe(type2.parent_lifetime);
+            const type1 = injector.get('base_type');
+            const type2 = injector.get('base_type');
+            return expect(type1.root_provider.parent_lifetime).not.toBe(type2.root_provider.parent_lifetime);
         });
 
         return it('undescribed bug', function() {
-            setup.reset_injector();
+            injector = setup.reset_injector();
             setup.make_descriptor({
                 name: 'base_type',
                 type(root_type_1) { this.root_type_1 = root_type_1; },

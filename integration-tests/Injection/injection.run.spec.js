@@ -1,16 +1,13 @@
-import injector from '../instantiate.injector';
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 import sinon from 'sinon';
+
+let injector;
 export default function() {
-    beforeEach(() => setup.reset_injector());
+    beforeEach(() => injector = setup.reset_injector());
     it('runs the main function', function() {
         const test_main = sinon.spy();
 
-        injector.providers.main = {
-            name: 'main',
-            dependencies: null,
-            type: test_main
-        };
+        injector.registerMain(test_main);
 
         injector.run();
 

@@ -18,7 +18,7 @@ module.exports = function (config) {
             files: [
                 './node_modules/phantomjs-polyfill-array-from/array-from-polyfill.js',
                 './node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
-                'spec/index.js'
+                'integration-tests/inject.js.spec.js'
             ],
 
 
@@ -29,9 +29,10 @@ module.exports = function (config) {
             // preprocess matching files before serving them to the browser
             // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
             preprocessors: {
-                'spec/index.js': ['webpack']
+                'integration-tests/inject.js.spec.js': ['webpack', 'sourcemap']
             },
             webpack: {
+                devtool: 'inline-source-map',
                 resolve: {
                     modules: ['src', 'node_modules'],
                     alias: {
@@ -44,7 +45,6 @@ module.exports = function (config) {
                         {
                             test: /\.js$/,
                             loader: 'babel-loader',
-                            options: { plugins: [['istanbul', {exclude: ['spec']}]] },
                             enforce: 'post'
                         }
                     ]
@@ -58,17 +58,7 @@ module.exports = function (config) {
             // test results reporter to use
             // possible values: 'dots', 'progress'
             // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-            reporters: ['spec', 'coverage'],
-            coverageReporter: {
-
-                // reports can be any that are listed here: https://github.com/istanbuljs/istanbul-reports/tree/590e6b0089f67b723a1fdf57bc7ccc080ff189d7/lib
-                reporters: [{type: 'html'}, {type: 'text-summary'}],
-
-                // base output directory. If you include %browser% in the path it will be replaced with the karma browser name
-
-                // if using webpack and pre-loaders, work around webpack breaking the source path
-                fixWebpackSourcePaths: true,
-            },
+            reporters: ['spec'],
 
             // web server port
             port: 9876,

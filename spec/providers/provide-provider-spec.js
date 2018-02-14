@@ -22,7 +22,7 @@ export default function () {
     it('should return a spec which runs the provided function passing its dependencies when called', function () {
         let fn = sinon.spy();
         let fn2 = sinon.spy();
-        stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}, dependencySpecs: [{provider: fn2}]});
+        stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}, dependencies: [{provider: fn2}]});
 
         let spec = provideProvider({type: fn});
 

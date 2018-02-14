@@ -1,5 +1,5 @@
 {
-  "plugins": ["lodash", "ramda"],
+  "plugins": ["lodash", "ramda", "transform-object-rest-spread"],
   "presets": ["env"]
 
 }

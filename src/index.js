@@ -1,5 +1,3 @@
-import {curry} from 'ramda';
-
 import {registerType, registerFake, registerProvider, registerMain} from 'registration';
 import {getDescriptor}                                              from './injection';
 import {buildProvider}                                              from './providers';
@@ -7,12 +5,20 @@ import {clearState}                                                 from './util
 
 
 export function createInjector() {
+    const curry = function (fn) {
+        return function (arg1) {
+            return function (...args) {
+                return fn(arg1, ...args);
+            };
+        };
+    };
     const stores = {
         types: {},
         providers: {},
         fakes: {},
         state: {},
-        cache: {}
+        cache: {},
+        DEFAULT_LIFETIME: 'transient'
     };
     const build = curry(buildProvider)(stores);
     const descriptor = curry(getDescriptor)(stores);
@@ -31,7 +37,12 @@ export function createInjector() {
         },
 
         get: function (name, adhoc_dependencies, context) {
-            const spec = injection.nject(name);
+            if (name.indexOf('::provider') > -1) {
+                name = name.split('::provider')[0];
+                const spec = injection.inject(name);
+                return spec.provider;
+            }
+            const spec = injection.inject(name);
             return spec.provider.call(context, adhoc_dependencies);
         },
 
@@ -40,6 +51,10 @@ export function createInjector() {
                 throw 'No main method registered. Please register one by running injector.registerMain() before running the app';
             }
             return injection.get('main', context, adhoc_dependencies);
+        },
+
+        getType: function (name) {
+            return (stores.fakes[name] || stores.types[name]).type;
         }
     };
 

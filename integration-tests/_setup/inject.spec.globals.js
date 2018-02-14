@@ -1,11 +1,11 @@
-import injector from '../instantiate.injector';
 import setup from './inject.spec.setup';
 const lifetimes = ['transient', 'root', 'state', 'singleton', 'parent'];
-
-const get_adhoc_dependency_tests = lifetime =>
-    function() {
+let injector;
+const get_adhoc_dependency_tests = lifetime =>{};
+    /*function() {
         beforeEach(function() {
-            setup.reset_injector_cache();
+            injector = setup.reset_injector();
+
             setup.make_descriptor({
                 name: 'test_type',
                 type(adhoc_dependency) { this.adhoc_dependency = adhoc_dependency; },
@@ -87,6 +87,6 @@ const get_adhoc_dependency_tests = lifetime =>
         return it('doesnt pass unwanted dependencies', function() {
             return expect(injector.get('type_with_no_dependencies', {adhoc: 1}).args.length, this).toBe(0);
         });
-    };
+    };*/
 
 export {lifetimes, get_adhoc_dependency_tests};
