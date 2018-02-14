@@ -1,10 +1,10 @@
-import {get_dependency_names} from '../inject.util';
+import {getDependencyNames}   from 'util';
 
 export default function (name) { // for when inject is called with an anonymous function
     if (typeof name === 'function') {
         return {
             type: name,
-            dependencies: get_dependency_names(name)
+            dependencies: getDependencyNames(name)
         };
     } else {
         return {

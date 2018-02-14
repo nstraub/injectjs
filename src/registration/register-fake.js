@@ -1,13 +1,6 @@
-import {assertLifetime, register} from './index';
+import {registerInstantiable} from './index';
 
-export default function (injector, name, type, lifetime, provider) {
-    lifetime = lifetime || injector.DEFAULT_LIFETIME;
 
-    assertLifetime(lifetime);
-
-    register(injector, 'fakes', name, type, lifetime);
-
-    if (provider) {
-        injector.fakes[name].provider = provider;
-    }
+export default function (runtimeStores, name, type, lifetime, provider) {
+    registerInstantiable(runtimeStores.fakes, name, type, lifetime || runtimeStores.DEFAULT_LIFETIME, provider);
 }

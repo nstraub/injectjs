@@ -1,5 +1,5 @@
-const dependency_pattern = /^function ?\w* ?\(((?:\w+|(?:, ?))+)\)/;
-const separatorPattern = /, ?/;
+const dependency_pattern = /^function *\w* *?\( *((?:\w+|(?:, *?))+) *?\)/;
+const separatorPattern = /, */;
 
 export default function (type) {
     const serialized_type = type.toString();

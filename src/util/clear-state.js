@@ -1,11 +1,11 @@
 import {forEachObjIndexed as each} from 'ramda';
 
-export default function (injector) {
+export default function (runtimeStores) {
 
     each(function (provider, key) {
-        if (injector.cache[key]) {
-            delete injector.cache[key];
+        if (runtimeStores.cache[key]) {
+            delete runtimeStores.cache[key];
         }
-    }, injector.state);
-    injector.state = {};
+    }, runtimeStores.state);
+    runtimeStores.state = {};
 }

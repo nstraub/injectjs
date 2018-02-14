@@ -1,17 +1,10 @@
-import {assertLifetime, register} from './index';
+import {registerInstantiable} from 'registration/index';
 
-export default function (injector, name, type, lifetime, provider) {
-    lifetime = lifetime || injector.DEFAULT_LIFETIME;
 
-    assertLifetime(lifetime);
-
-    if (lifetime === 'singleton' && injector.cache[name]) {
+export default function (runtimeStores, name, type, lifetime, provider) {
+    if (lifetime === 'singleton' && runtimeStores.cache[name]) {
         throw 'you cannot re-register a singleton that has already been instantiated';
     }
 
-    register(injector, 'types', name, type, lifetime);
-
-    if (provider) {
-        injector.types[name].provider = provider;
-    }
+    registerInstantiable(runtimeStores.types, name, type, lifetime || runtimeStores.DEFAULT_LIFETIME, provider);
 }

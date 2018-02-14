@@ -2,8 +2,8 @@ module.exports = {
     "env": {
         "browser": true,
         "es6": true,
-        "jasmine": true,
-        "commonjs": true
+        "node": true,
+        "jasmine": true
     },
     "globals": {
         "dump": true
@@ -19,13 +19,18 @@ module.exports = {
     "rules": {
         "indent": [
             "error",
-            4
+            4,
+            {
+                "SwitchCase": 1,
+                "flatTernaryExpressions": true
+            }
         ],
         "linebreak-style": [
             "error",
             "unix"
         ],
         "no-console": 0,
+        "no-extra-semi": 0,
         "quotes": [
             "error",
             "single",

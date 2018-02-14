@@ -1,6 +1,6 @@
 {
   "name": "inject-js",
-  "version": "0.4.15",
+  "version": "0.5.0",
   "description": "lightweight, small, high level dependency injector with object lifetime management",
   "main": "dist/inject.js",
   "files": [
@@ -61,9 +61,11 @@
     "karma-webpack": "^2.0.9",
     "lodash-webpack-plugin": "^0.11.4",
     "phantomjs-polyfill-array-from": "^1.0.1",
+    "phantomjs-polyfill-object-assign": "0.0.2",
     "ramda": "^0.25.0",
     "sinon": "^4.3.0",
-    "webpack": "^3.11.0"
+    "webpack": "^3.11.0",
+    "webpack-conditional-loader": "^1.0.11"
   },
   "dependencies": {
     "lodash": "^4.17.5"

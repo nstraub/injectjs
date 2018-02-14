@@ -1,26 +1,24 @@
 import _ from 'lodash';
 
-export default function _assert_circular_references(template, dependencies, path) {
-    var parent, name, parent_name;
-    parent = template.parent;
+
+export default function _assert_circular_references(spec, dependencies, path) {
+    let parent = spec.parent;
     if (!parent) {
         return;
     }
 
-    name = template.descriptor.name || template.descriptor.type;
-    parent_name = parent.descriptor.name;
+    let name = spec.descriptor.name || spec.descriptor.type;
     path.unshift(name);
 
-    var provider = parent.descriptor.provider;
+    let provider = parent.descriptor.provider;
     if (_.isArray(provider)) {
         provider = provider[provider.length - 1];
     }
 
-    if (provider !== name && ~dependencies.indexOf(parent_name)) {
-        throw 'Circular Reference Detected: ' +
-        parent_name + ' -> ' +
-        path.join(' -> ') +
-        ' -> ' + parent_name;
+    let parent_name = parent.descriptor.name;
+    if (provider !== name && dependencies.indexOf(parent_name) > -1) {
+        throw 'Circular Reference Detected: ' + parent_name + ' -> ' +
+                path.join(' -> ') + ' -> ' + parent_name;
     }
     _assert_circular_references(parent, dependencies, path);
-}
+};

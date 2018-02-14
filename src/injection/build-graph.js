@@ -1,61 +1,30 @@
-import _ from 'lodash';
+import _      from 'lodash';
 import {uuid} from '../util';
 
-import {assertCircularReferences, buildGraph, getDescriptor} from './index';
+import {assertCircularReferences, getDescriptor} from './index';
+import {buildProvider}                           from '../providers';
 
-export default function (injector, name, descriptor, parent, root) {
-    var template = {}, provider_name, dependency_templates;
+export default function (descriptor, runtimeStores, parent, root) {
+    let spec = {}, dependency_specs = [];
 
-    if (typeof name === 'string' && ~name.indexOf('::provider')) {
-        name = name.replace('::provider', '');
-        descriptor = getDescriptor(injector, name);
-        template.return_provider = true;
-    }
-
-    if (!descriptor) {
-        if (parent) {
-            return null;
-        } else {
-            throw 'There is no dependency named "' + name + '" registered.';
-        }
-    }
-
-    template.hashCode = uuid.getNext();
-    template.descriptor = descriptor;
-    template.parent = parent || null;
-    template.root = root || template;
+    spec.id = uuid.getNext();
+    spec.descriptor = descriptor;
+    spec.parent = parent || undefined;
+    spec.root = root || spec;
 
     if (root && descriptor.dependencies) {
-        assertCircularReferences(template, descriptor.dependencies, []);
+        assertCircularReferences(spec, descriptor.dependencies, []);
     }
 
-    provider_name = descriptor.provider;
-
-    if (provider_name) {
-        if (_.isArray(provider_name)) {
-            provider_name = provider_name[provider_name.length - 1];
-        }
-        if (!parent || provider_name !== parent.descriptor[(typeof provider_name === 'string' ? 'name' : 'type')]) {
-            var provider_descriptor = getDescriptor(injector, descriptor.provider);
-            provider_descriptor.dependencies.shift();
-            provider_descriptor.dependencies.unshift(name);
-
-            return buildGraph(injector, provider_name, provider_descriptor, parent, template.root);
-        }
-    }
-
-    dependency_templates = {};
-    var counter = 0;
     _.each(descriptor.dependencies, function (dependency_name) {
-        var dependency_template = buildGraph(injector, dependency_name, getDescriptor(injector, dependency_name), template, template.root);
-        if (dependency_templates[dependency_name]) {
-            dependency_templates[dependency_name + counter++] = dependency_template;
-        } else {
-            dependency_templates[dependency_name] = dependency_template;
-        }
+        let dependencyDescriptor = getDescriptor(runtimeStores, dependency_name);
+        let dependency_spec = buildProvider(runtimeStores, dependencyDescriptor, spec, spec.root);
+
+        dependency_specs.push(dependency_spec);
+
     });
 
-    template.dependencies = dependency_templates;
-    return template;
+    spec.dependencies = dependency_specs;
+    return spec;
 
-};
+}

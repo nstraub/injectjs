@@ -1,45 +1,43 @@
-import {get_dependency_names} from '../inject.util';
+import getDependencyNames from '../util/get-dependency-names';
+import uuid               from '../util/uuid';
+
 import {
-    assertDestinationIsCorrect,
-    assertNameRequired, assertRealTypeWasPassed, assertTypeDependencyIntegrity, assertTypeRequired
-}                             from './assertions';
-import uuid                   from '../util/uuid';
+    assertNameRequired, assertTypeProvided,
+    assertTypeDependency, assertTypeRequired
+} from './assertions';
 
 
-function clearCache(injector, name) {
-    if (injector.cache[name]) {
-        delete injector.cache[name];
-    }
-}
+// warning removed clearCache from this func. need to verify and clear during injection
 
-export default function (injector, where, name, type, lifetime) {
-    let realType, dependencies, destination;
-    assertDestinationIsCorrect(where);
+export default function (name, typeDescriptor, lifetime) {
+    let type, dependencies;
 
-    destination = injector[where];
     assertNameRequired(name);
 
-    assertTypeRequired(type);
+    assertTypeRequired(typeDescriptor);
 
-    if (typeof type === 'function') {
-        dependencies = type.$inject || type.prototype.$inject || get_dependency_names(type);
-        realType = type;
-    } else if (Array.isArray(type)) {
-        realType = type[type.length - 1];
+    if (typeof typeDescriptor === 'function') {
+        dependencies =
+            typeDescriptor.$inject || typeDescriptor.prototype.$inject || getDependencyNames(typeDescriptor);
+        type = typeDescriptor;
+    } else if (Array.isArray(typeDescriptor)) {
+        type = typeDescriptor[typeDescriptor.length - 1];
 
-        assertTypeDependencyIntegrity(type, realType);
+        assertTypeDependency(typeDescriptor, type);
 
-        dependencies = type.slice(0, type.length - 1);
+        dependencies =
+            typeDescriptor.length > 1 ?
+                typeDescriptor.slice(0, typeDescriptor.length - 1) : undefined;
     } else {
         throw 'type must be a function or an array';
     }
-    assertRealTypeWasPassed(realType);
-    clearCache(injector, name);
-    destination[name] = {
-        name: name,
-        type: realType,
-        dependencies: dependencies,
-        lifetime: lifetime,
+    assertTypeProvided(type);
+
+    return {
+        name,
+        type,
+        dependencies,
+        lifetime,
         hashCode: uuid.getNext()
     };
 }

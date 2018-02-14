@@ -1,14 +1,12 @@
-import {provideTransient} from './index';
+import {provideCached} from './index';
+import {last}                            from 'ramda';
 
-export default function (descriptor) {
-    const name = descriptor.name;
+export default function (descriptor, ...args) {
+    const root = last(args);
 
-    return function (current_template, adhoc_dependencies) {
-        const roots = current_template.root.roots = current_template.root.roots || {};
+    if (root.roots === undefined) {
+        root.roots = {};
+    }
 
-        if (!roots[name]) {
-            roots[name] = provideTransient(descriptor).call(this, current_template, adhoc_dependencies);
-        }
-        return roots[name];
-    };
+    return provideCached(descriptor, root.roots, ...args);
 };
