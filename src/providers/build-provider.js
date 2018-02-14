@@ -2,8 +2,6 @@ import * as providers                            from './index';
 import {compose, join, lensIndex, over, toUpper} from 'ramda';
 
 
-const singletons = {};
-
 const toTitle = compose(
     join(''),
     over(lensIndex(0), toUpper)
@@ -21,7 +19,7 @@ export default function (runtimeStores, descriptor, ...args2) {
         switch (descriptor.lifetime) {
             case 'singleton':
                 provider_name = 'provideCached';
-                args.push(singletons);
+                args.push(runtimeStores.singletons);
                 break;
             case 'state':
                 provider_name = 'provideCached';

@@ -8,8 +8,8 @@ export default function (descriptor, cache, ...args) {
         let dependency_to_cache = provideTransient(descriptor, ...args);
 
         let transientProvider = dependency_to_cache.provider;
-        dependency_to_cache.provider = function () {
-            dependency_to_cache.instance = transientProvider.call(this);
+        dependency_to_cache.provider = function (adhocs) {
+            dependency_to_cache.instance = transientProvider.call(this, adhocs);
             dependency_to_cache.provider = function () {
                 return dependency_to_cache.instance;
             };

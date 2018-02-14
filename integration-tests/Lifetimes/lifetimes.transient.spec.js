@@ -1,7 +1,13 @@
-
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 
+let injector;
 export default function() {
+    beforeEach(function () {
+        injector = setup.reset_injector();
+        setup.assign_base_types();
+        setup.assign_basic_dependent_types();
+    });
+
     it('creates one instance of the type per dependency requirement', function() {
         const first_transient_instance = injector.get('base_transient_type');
         const second_transient_instance = injector.get('base_transient_type');
@@ -18,12 +24,7 @@ export default function() {
     });
 
     it('allows multiple instances of the same type to be injected into one dependant', function() {
-        injector.types.multiple_instances = {
-            name: 'multiple_instances',
-            type(a, b) { this.a = a; this.b = b; },
-            dependencies: ['base_transient_type', 'base_transient_type'],
-            lifetime: 'transient'
-        };
+        injector.registerType('multiple_instances',['base_transient_type', 'base_transient_type',function (a, b) { this.a = a; this.b = b; }], 'transient');
 
         const instance = injector.get('multiple_instances');
 
@@ -33,5 +34,5 @@ export default function() {
     });
 
 
-    return describe('ad-hoc dependencies', get_adhoc_dependency_tests('transient'));
+    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('transient'));
 };

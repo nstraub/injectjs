@@ -1,7 +1,12 @@
-
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 
+let injector;
 export default function() {
+    beforeEach(function () {
+        injector = setup.reset_injector();
+        setup.assign_base_types();
+        setup.assign_basic_dependent_types();
+    });
     it('creates one instance of the type per state', function() {
         const first_instance = injector.get('base_state_type');
         const second_instance = injector.get('base_state_type');
@@ -36,5 +41,5 @@ export default function() {
             )(lifetime));
     });
 
-    return describe('ad-hoc dependencies', get_adhoc_dependency_tests('state'));
+    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('state'));
 };

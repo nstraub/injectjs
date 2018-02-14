@@ -15,8 +15,8 @@ export default function() {
             (lifetime =>
                 it(`creates a function that returns an instance of ${lifetime}`, function() {
                     const type = `base_${lifetime}_type`;
-                    const provider = injector.inject(type);
-                    return expect(provider()).toBeInstanceOf(injector.types[type].type);
+                    const provider = injector.inject(type).provider;
+                    return expect(provider()).toBeInstanceOf(injector.getType(type));
                 })
             )(lifetime);
         }
@@ -27,8 +27,8 @@ export default function() {
                 result.push(lifetimes.map((dependency_lifetime) =>
                     ((lifetime, dependency_lifetime) =>
                         it(`instantiates a ${lifetime} type that depends on a ${dependency_lifetime} type`, function() {
-                            const test = injector.inject(lifetime + '_depends_on_' + dependency_lifetime);
-                            return expect(test().dependency).toBeInstanceOf(injector.types[`base_${dependency_lifetime}_type`].type);
+                            const test = injector.inject(lifetime + '_depends_on_' + dependency_lifetime).provider;
+                            return expect(test().dependency).toBeInstanceOf(injector.getType(`base_${dependency_lifetime}_type`));
                         })
                     )(lifetime, dependency_lifetime)));
             }
@@ -45,43 +45,42 @@ export default function() {
         return lifetimes.map((lifetime) =>
             (function(lifetime) {
                 it(`uses passive_${lifetime}_provider to instantiate passive_${lifetime}_type`, function() {
-                    const provider = injector.inject(`passive_${lifetime}_type`);
+                    const provider = injector.inject(`passive_${lifetime}_type`).provider;
                     const type = provider();
 
-                    expect(type).toBeInstanceOf(injector.types[`passive_${lifetime}_type`].type);
+                    expect(type).toBeInstanceOf(injector.getType(`passive_${lifetime}_type`));
                     return expect(type.passively_provided).toBeTruthy();
                 });
 
                 it(`caches the passive_${lifetime}_provider instead of passive_${lifetime}_type`, function() {
-                    let provider = injector.inject(`passive_${lifetime}_type`);
+                    let provider = injector.inject(`passive_${lifetime}_type`).provider;
                     const type = provider();
 
-                    expect(type).toBeInstanceOf(injector.types[`passive_${lifetime}_type`].type);
+                    expect(type).toBeInstanceOf(injector.getType(`passive_${lifetime}_type`));
                     expect(type.passively_provided).toBeTruthy();
-
                     type.passively_provided = false;
 
-                    provider = injector.inject(`passive_${lifetime}_type`);
+                    provider = injector.inject(`passive_${lifetime}_type`).provider;
                     const type2 = provider();
 
-                    expect(type2).toBeInstanceOf(injector.types[`passive_${lifetime}_type`].type);
+                    expect(type2).toBeInstanceOf(injector.getType(`passive_${lifetime}_type`));
                     if (__in__(lifetime, ['singleton', 'state'])) { expect(type).toBe(type2); }
-                    return expect(type2.passively_provided).toBeTruthy();
+                    expect(type2.passively_provided).toBeTruthy();
                 });
 
                 it('allows the passive provider to be an anonymous function', function() {
-                    const provider = injector.inject(`passive_${lifetime}_type_with_anon_provider`);
+                    const provider = injector.inject(`passive_${lifetime}_type_with_anon_provider`).provider;
                     const type = provider();
 
-                    expect(type).toBeInstanceOf(injector.types[`passive_${lifetime}_type_with_anon_provider`].type);
+                    expect(type).toBeInstanceOf(injector.getType(`passive_${lifetime}_type_with_anon_provider`));
                     return expect(type.passively_provided).toBeTruthy();
                 });
 
                 return it('allows the passive provider to be an array with an anonymous function', function() {
-                    const provider = injector.inject(`passive_${lifetime}_type_with_anon_array`);
+                    const provider = injector.inject(`passive_${lifetime}_type_with_anon_array`).provider;
                     const type = provider();
 
-                    expect(type).toBeInstanceOf(injector.types[`passive_${lifetime}_type_with_anon_array`].type);
+                    expect(type).toBeInstanceOf(injector.getType(`passive_${lifetime}_type_with_anon_array`));
                     return expect(type.passively_provided).toBeTruthy();
                 });
             })(lifetime));
@@ -105,7 +104,7 @@ export default function() {
 
                         const adhoc_function_provider = injector.inject(descriptor);
 
-                        expect(adhoc_function_provider()).toBeInstanceOf(injector.types[`base_${lifetime}_type`].type);
+                        expect(adhoc_function_provider()).toBeInstanceOf(injector.getType(`base_${lifetime}_type`));
 
                     })
                 )(lifetime);
@@ -115,7 +114,7 @@ export default function() {
 
                     const adhoc_function_provider = injector.inject(adhoc_function);
 
-                    return expect(adhoc_function_provider()).toBeInstanceOf(injector.types[`base_${lifetime}_type`].type);
+                    return expect(adhoc_function_provider()).toBeInstanceOf(injector.getType(`base_${lifetime}_type`));
                 }));
             }
             return result;

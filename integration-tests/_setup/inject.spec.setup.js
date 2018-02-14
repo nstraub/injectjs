@@ -15,7 +15,7 @@ export default {
     },
     make_descriptor(options) {
         let target = options.target,
-            {name, provider, type} = options,
+            {name, provider, type, dependencies} = options,
             lifetime = options.lifetime;
 
         switch (target) {
@@ -34,6 +34,9 @@ export default {
             };
         }
 
+        if (dependencies !== undefined) {
+            type = [...dependencies, type]
+        }
         injector[target](name, type, lifetime, provider);
     },
     assign_base_types() {

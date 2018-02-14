@@ -4,7 +4,9 @@ import * as buildGraphModule      from 'injection/build-graph';
 import * as provideProviderModule from 'providers/provide-provider';
 
 import uuid                              from 'util/uuid';
-import {defaultFactory, providerFactory} from '../_common/data-structure-factory';
+import {
+    buildRuntimeStores, defaultFactory, providerFactory
+} from '../_common/data-structure-factory';
 import {provideTransient}                from 'providers';
 
 
@@ -29,7 +31,7 @@ export default function () {
         it('should return a function which returns an instance of type', function () {
             let fakeType = sinon.spy(),
                 stubUuid = sinon.stub(uuid, 'getNext'),
-                spec = provideTransient({type: fakeType});
+                spec = provideTransient({type: fakeType, name:'fake'});
 
             stubUuid.returns(20);
             spec.provider();
@@ -60,6 +62,16 @@ export default function () {
             expect(spec.dependencies.length).toEqual(3);
             expect(spec.dependencies[0]).toBe(transientSpec);
             stub.restore();
+        });
+    });
+
+    describe('::provider', function () {
+        it('should return provider instead of instance', function () {
+            transientDescriptor.name += '::provider';
+
+            const result = provideTransient(transientDescriptor, buildRuntimeStores());
+
+            expect(result.provider()()).toBeInstanceOf(transientDescriptor.type);
         });
     });
 }

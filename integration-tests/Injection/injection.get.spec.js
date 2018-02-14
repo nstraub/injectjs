@@ -85,7 +85,7 @@ export default function() {
 
             setup.make_descriptor({
                 name: 'root_type_2',
-                type(provider1, ad_hoc_1, transient_1_provider) {
+                type: ['provider1', 'ad_hoc_1', 'transient_1::provider', function (provider1, ad_hoc_1, transient_1_provider) {
                     this.provider1 = provider1;
                     this.ad_hoc_1 = ad_hoc_1;
                     this.transient_1_provider = transient_1_provider;
@@ -93,8 +93,7 @@ export default function() {
                     this.transients.push(this.transient_1_provider.call(this.provider1, {ad_hoc_1: this.ad_hoc_1}));
                     this.transients.push(this.transient_1_provider.call(this.provider1, {ad_hoc_1: this.ad_hoc_1}));
                     this.transients.push(this.transient_1_provider.call(this.provider1, {ad_hoc_1: this.ad_hoc_1}));
-                },
-                dependencies: ['provider1', 'ad_hoc_1', 'transient_1::provider'],
+                }],
                 lifetime: 'root'
             });
 
@@ -144,19 +143,18 @@ export default function() {
             type = injector.get('base_type', {ad_hoc_1: 'adhoc2'});
             const { transients } = type.root_type_1.root_type_2;
 
-            expect(transients[0]).not.toBe(transients[1]);
-            expect(transients[0]).not.toBe(transients[2]);
-            expect(transients[1]).not.toBe(transients[2]);
+            expect(transients[0]).not.toBe(transients[1], 'transients');
+            expect(transients[0]).not.toBe(transients[2], 'transients');
+            expect(transients[1]).not.toBe(transients[2], 'transients');
 
 
-            expect(transients[0].parent_type_1).not.toBe(transients[1].parent_type_1);
-            expect(transients[0].parent_type_1).not.toBe(transients[2].parent_type_1);
-            expect(transients[1].parent_type_1).not.toBe(transients[2].parent_type_1);
+            expect(transients[0].parent_type_1).not.toBe(transients[1].parent_type_1, 'parent1');
+            expect(transients[0].parent_type_1).not.toBe(transients[2].parent_type_1, 'parent1');
+            expect(transients[1].parent_type_1).not.toBe(transients[2].parent_type_1, 'parent1');
 
-
-            expect(transients[0].parent_type_1.parent_type_2).not.toBe(transients[1].parent_type_1.parent_type_2);
-            expect(transients[0].parent_type_2).not.toBe(transients[2].parent_type_2);
-            return expect(transients[1].parent_type_2).not.toBe(transients[2].parent_type_2);
+            expect(transients[0].parent_type_1.parent_type_2).not.toBe(transients[1].parent_type_1.parent_type_2, '01parent2');
+            expect(transients[0].parent_type_2).not.toBe(transients[2].parent_type_2, '02parent2');
+            return expect(transients[1].parent_type_2).not.toBe(transients[2].parent_type_2, '12parent2');
         });
     });
 };

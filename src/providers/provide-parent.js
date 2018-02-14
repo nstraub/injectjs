@@ -1,9 +1,12 @@
+import {uuid}          from '../util';
 import {provideCached} from './index';
 
 
 export default function (descriptor, ...args) {
     return {
-        provider: function () {
+        id: uuid.getNext(),
+        descriptor,
+        provider: function (adhocs) {
             let parent = args[args.length - 2];
             let topmost_parent;
 
@@ -27,7 +30,7 @@ export default function (descriptor, ...args) {
 
             return provideCached(descriptor, topmost_parent.children, ...args)
                 .provider
-                .call(this);
+                .call(this, adhocs);
         }
     };
 }

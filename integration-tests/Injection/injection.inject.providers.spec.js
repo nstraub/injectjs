@@ -22,27 +22,26 @@ export default function() {
     });
 
     it('gets a provider using caller`s context', function() {
-        const provider = injector.inject('test_this_provider').call(this);
+        const provider = injector.inject('test_this_provider').provider.call(this);
         return expect(provider).toBe(this);
     });
 
     it('gets a nested provider using caller`s context', function() {
-        injector.providers.test_provider.dependencies = ['test_this_provider'];
-        injector.providers.test_provider.type = ttp => ttp;
+        injector.registerProvider('test_provider', function (test_this_provider) { return test_this_provider});
 
-        const provider = injector.inject('test_provider').call(this);
+        const provider = injector.inject('test_provider').provider.call(this);
         return expect(provider).toBe(this);
     });
 
     it('creates a function that returns the given provider', function() {
-        const test = injector.inject('test_provider');
+        const test = injector.inject('test_provider').provider;
         test();
         return expect(test_provider_spy).toHaveBeenCalledOnce();
     });
 
     it('injects dependencies into given provider', function() {
         injector.providers.test_provider.dependencies = ['test_provider_dependency'];
-        const test = injector.inject('test_provider');
+        const test = injector.inject('test_provider').provider;
         test();
         expect(test_provider_dependency_stub).toHaveBeenCalledOnce();
         return expect(test_provider_spy).toHaveBeenCalledWith('test');
@@ -50,14 +49,14 @@ export default function() {
 
     describe('ad-hoc dependencies', function() {
         it('injects adhoc dependency at instantiation time', function() {
-            const test = injector.inject('adhoc_test_provider');
+            const test = injector.inject('adhoc_test_provider').provider;
             const result = test({adhoc_dependency: 'test dependency'});
 
             return expect(result[1]).toBe('test dependency');
         });
 
         return it('maintains proper dependency order', function() {
-            const test = injector.inject('adhoc_ordered_test_provider');
+            const test = injector.inject('adhoc_ordered_test_provider').provider;
             const result = test({b:2,d:4,f:6});
 
             expect(result[0]).toBe(6);
@@ -76,7 +75,7 @@ export default function() {
             dependencies: ['adhoc_test_provider', 'adhoc_ordered_test_provider']
         };
 
-        const test_provider = injector.inject('parent_adhoc_provider');
+        const test_provider = injector.inject('parent_adhoc_provider').provider;
 
         const provider = test_provider({b: 2, d: 4, f: 6, adhoc_dependency: 'test dependency'});
 

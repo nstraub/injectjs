@@ -18,10 +18,9 @@ export function createInjector() {
         fakes: {},
         state: {},
         cache: {},
+        singletons: {},
         DEFAULT_LIFETIME: 'transient'
     };
-    const build = curry(buildProvider)(stores);
-    const descriptor = curry(getDescriptor)(stores);
 
     const registration = {
         registerType: curry(registerType)(stores),
@@ -33,7 +32,11 @@ export function createInjector() {
     const injection = {
 
         inject: function (name) {
-            return build(descriptor(name));
+            let descriptor = getDescriptor(stores, name);
+            if (stores.cache[name] && stores.cache[name].descriptor.hashCode === descriptor.hashCode) {
+                return stores.cache[name];
+            }
+            return buildProvider(stores, descriptor);
         },
 
         get: function (name, adhoc_dependencies, context) {

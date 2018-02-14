@@ -5,6 +5,15 @@ export default function() {
     beforeEach(function() {
         injector = setup.reset_injector();
         setup.make_descriptor({
+            name: 'base_type',
+            type: function (second, second2, second3) { this.second = second; this.second2 = second2; this.second3 = second3; },
+            dependencies: [
+                'second_level_dependency',
+                'second_level_dependency2',
+                'second_level_dependency2'
+            ]
+        });
+        setup.make_descriptor({
             name: 'parent_dependency',
             lifetime: 'parent'
         });
@@ -15,12 +24,12 @@ export default function() {
         setup.make_descriptor({
             name: 'third_level_dependency',
             dependencies: ['parent_dependency'],
-            type(parent_dependency) { this.parent = parent; }
+            type(parent_dependency) { this.parent = parent_dependency; }
         });
         setup.make_descriptor({
             name: 'third_level_dependency2',
             dependencies: ['parent_dependency', 'root_dependency'],
-            type(parent_dependency, root_dependency) { this.parent = parent; this.root = root; }
+            type(parent_dependency, root_dependency) { this.parent_dependency = parent; this.root = root_dependency; }
         });
         setup.make_descriptor({
             name: 'second_level_dependency',
@@ -35,12 +44,12 @@ export default function() {
         setup.make_descriptor({
             name: 'second_level_dependency3',
             dependencies: ['third_level_dependency2', 'root_dependency'],
-            type(third_level_dependency2, root_dependency) { this.third = third_level_dependency2; this.root = root; }
+            type(third_level_dependency2, root_dependency) { this.third = third_level_dependency2; this.root = root_dependency; }
         });
         setup.make_descriptor({
             name: 'base_parent_type',
             dependencies: ['second_level_dependency2', 'parent_dependency'],
-            type(second_level_dependency2, parent_dependency) { this.second = second_level_dependency2; this.parent = parent; }
+            type(second_level_dependency2, parent_dependency) { this.second = second_level_dependency2; this.parent = parent_dependency; }
         });
         return setup.make_descriptor({
             name: 'base_type_with_roots',
@@ -50,7 +59,7 @@ export default function() {
     });
 
     it('creates one instance of the type for its parent and all of its dependencies', function() {
-        const provider = injector.inject('second_level_dependency2');
+        const provider = injector.inject('second_level_dependency2').provider;
         const type = provider();
 
         expect(type.parent).toBeInstanceOf(injector.getType('parent_dependency'));
@@ -59,7 +68,7 @@ export default function() {
     });
 
     it('creates a different instance of the type for its parents siblings', function() {
-        const provider = injector.inject('base_type');
+        const provider = injector.inject('base_type').provider;
         const type = provider();
 
         expect(type.second.third.parent).toBeInstanceOf(injector.getType('parent_dependency'));
@@ -76,19 +85,19 @@ export default function() {
     });
 
     it('references the topmost parent that contains the dependency', function() {
-        const provider = injector.inject('base_parent_type');
+        const provider = injector.inject('base_parent_type').provider;
         const type = provider();
 
         return expect(type.parent).toBe(type.second.third.parent);
     });
 
     it('doesn`t interfere with `root` lifetime types', function() {
-        const provider = injector.inject('base_type_with_roots');
+        const provider = injector.inject('base_type_with_roots').provider;
         const type = provider();
 
         expect(type.second3.third.root).toBe(type.second3.root);
         return expect(type.third.root).toBe(type.second3.root);
     });
 
-    return describe('ad-hoc dependencies', get_adhoc_dependency_tests('parent'));
+    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('parent'));
 };
