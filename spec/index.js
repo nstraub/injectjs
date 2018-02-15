@@ -7,10 +7,14 @@ import {
 }                                                          from './registration';
 import {clearState_spec, getDependencyNamesSpec, uuidSpec} from './util';
 import {
-    buildProvider_spec, provideCached_spec, provideProvider_spec,
+    buildProvider_spec, provideCached_spec, provideParent_spec,
+    provideProvider_spec,
+    provideRoot_spec,
     provideTransient_spec
 }                                                          from './providers';
-import {assertCircularReferences_spec, buildGraph_spec}    from './injection';
+import {
+    assertCircularReferences_spec, buildGraph_spec, getDescriptor_spec
+}                                                          from './injection';
 
 describe('InjectJS', function () {
     beforeAll(function () {
@@ -52,10 +56,13 @@ describe('InjectJS', function () {
         describe('Transient Provider', provideTransient_spec);
         describe('Provider Provider', provideProvider_spec);
         describe('Cached Provider', provideCached_spec);
+        describe('Root Provider', provideRoot_spec);
+        describe('Parent Provider', provideParent_spec);
     });
 
     describe('Injection', function () {
         describe('Build Graph', buildGraph_spec);
+        describe('Get Descriptor', getDescriptor_spec);
         describe('Assert Circular References', assertCircularReferences_spec);
     });
 });

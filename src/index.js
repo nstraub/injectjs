@@ -1,5 +1,5 @@
 import {registerType, registerFake, registerProvider, registerMain} from 'registration';
-import {getDescriptor}                                              from './injection';
+import {buildGraph, getDescriptor}                                  from './injection';
 import {buildProvider}                                              from './providers';
 import {clearState}                                                 from './util';
 
@@ -34,9 +34,9 @@ export function createInjector() {
         inject: function (name) {
             let descriptor = getDescriptor(stores, name);
             if (stores.cache[name] && stores.cache[name].descriptor.hashCode === descriptor.hashCode) {
-                return stores.cache[name];
+                return stores.cache[name](buildGraph(descriptor, stores));
             }
-            return buildProvider(stores, descriptor);
+            return buildProvider(stores, descriptor)(buildGraph(descriptor, stores));
         },
 
         get: function (name, adhoc_dependencies, context) {

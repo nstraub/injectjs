@@ -45,6 +45,25 @@ export const providerFactory = {
     }
 };
 
+export const passiveProviderFactory = {
+    createDescriptor(name, provider) {
+        return {
+            name: `${name}::passive`,
+            type: provider,
+            dependencies: [name]
+        };
+    },
+    createSpec(descriptor) {
+        const dependencies = [{id: ++i, provider(adhoc){return adhoc.instance;}}];
+        return {
+            id: ++i,
+            provider: (adhoc) => dependencies.map((dep)=> dep.provider(adhoc))[0],
+            descriptor,
+            dependencies
+        };
+    }
+};
+
 export const constantValueFactory = {
     createDescriptor() {
         return {

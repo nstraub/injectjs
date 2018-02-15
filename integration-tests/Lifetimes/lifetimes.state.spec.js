@@ -41,5 +41,5 @@ export default function() {
             )(lifetime));
     });
 
-    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('state'));
+    describe('ad-hoc dependencies', get_adhoc_dependency_tests('state'));
 };

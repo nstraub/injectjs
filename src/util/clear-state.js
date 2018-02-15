@@ -6,6 +6,6 @@ export default function (runtimeStores) {
         if (runtimeStores.cache[key]) {
             delete runtimeStores.cache[key];
         }
+        delete runtimeStores.state[key];
     }, runtimeStores.state);
-    runtimeStores.state = {};
 }

@@ -13,7 +13,7 @@ export default function () {
         let fn = sinon.spy();
         stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}});
 
-        let spec = provideProvider({type: fn});
+        let spec = provideProvider({type: fn}, {}, {}, {});
 
         spec.provider();
         expect(fn).toHaveBeenCalledOnce();

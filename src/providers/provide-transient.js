@@ -1,65 +1,74 @@
+import {buildGraph}      from '../injection';
 import {provideProvider} from './index';
 import uuid              from '../util/uuid';
-import {buildGraph}      from '../injection';
+import {identity}        from 'ramda';
 import {cleanup}         from './provide-provider';
 
 
+
+const identityf = function (a) {
+    return function () {
+        return identity(a);
+    };
+};
 const create_object = Object.create;
 
 export default function (descriptor, ...args) {
-    let spec, getProvider=false;
-    const type = descriptor.type;
-    let providerSpec;
-    if (descriptor.name.indexOf('::provider')> -1) {
-        getProvider=true;
-        descriptor.name = descriptor.name.split('::provider')[0];
-    }
-    if (descriptor.dependencies === undefined) {
-        spec = {
+    const factory = function (spec) {
+        let template;
+
+        const type = descriptor.type;
+
+        template = {
             id: uuid.getNext(),
-            provider: function () {
-                const instance = new type();
-                if (providerSpec) {
-                    return providerSpec.provider.call(this, {instance});
-                }
-                return instance;
-            },
             descriptor
         };
-    } else {
-        spec = buildGraph(descriptor, ...args);
-        spec.provider = function (adhocs) {
-            const context = this;
-            const instance = create_object(type.prototype);
-            type.apply(instance, spec.dependencies.map(function (dep) {return dep.provider.call(context, adhocs);}));
-            if (providerSpec) {
-                return providerSpec.provider.call(context, {instance});
-            }
-            return instance;
-        };
-    }
-    if (descriptor.provider !== undefined) {
-        providerSpec = provideProvider(descriptor.provider, ...args);
-        providerSpec.dependencies.unshift({
-            id: uuid.getNext(),
-            parent: providerSpec,
-            root: providerSpec.root,
-            provider: function (adhocs) {return adhocs.instance;}
-        });
-    }
-    if (args.length <= 1 || getProvider) {
-        const provider = spec.provider;
-        spec.provider = function (adhocs) {
-            let instance = provider.call(this, adhocs);
-            cleanup(spec);
-            return instance;
-        };
-    }
-    if (getProvider) {
-        const provider = spec.provider;
-        spec.provider = function () {
-            return provider;
-        };
-    }
-    return spec;
+
+        if (descriptor.dependencies === undefined) {
+            template.provider = function () {
+                return new type();
+            };
+        } else {
+            template.spec = spec;
+            template.provider = function (adhocs) {
+                const context = this;
+                const instance = create_object(type.prototype);
+                type.apply(instance, template.spec.dependencies.map(function (dep) {
+                    return dep.provider.call(context, adhocs);
+                }));
+                return instance;
+            };
+        }
+        if (descriptor.provider !== undefined) {
+            template.passiveProvider =
+                provideProvider(descriptor.provider, ...args)(buildGraph(descriptor.provider, args[0], spec.parent, spec.root));
+            template.passiveProvider.spec.dependencies.unshift({
+                provider: function (adhocs) {
+                    return adhocs.instance;
+                }
+            });
+            let provider = template.provider;
+            template.provider = function (adhocs) {
+                let context = this;
+                return template.passiveProvider.provider.call(context, {instance: provider.call(context, adhocs)});
+            };
+        }
+
+        if (args.length <= 1 || descriptor.name.indexOf('::provider') > -1) {
+            let provider = template.provider;
+            template.provider = function (adhoc) {
+                const instance = provider.call(this, adhoc);
+                cleanup(spec);
+                return instance;
+            };
+        }
+
+        if (descriptor.name.indexOf('::provider') > -1) {
+            template.provider = identityf(template.provider);
+        }
+
+        return template;
+    };
+    factory.descriptor = descriptor;
+    return factory;
 }

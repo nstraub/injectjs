@@ -3,7 +3,8 @@ import sinon from 'sinon';
 import * as registerModule       from 'registration/register';
 import * as assertLifetimeModule from 'registration/assert-lifetime';
 
-import registerInstantiable from 'registration/register-instantiable';
+import registerInstantiable     from 'registration/register-instantiable';
+import {passiveProviderFactory} from '../_common/data-structure-factory';
 
 
 export default function () {
@@ -20,6 +21,7 @@ export default function () {
         },
         providerFn = function () {};
 
+    let passiveProviderDescriptor;
     beforeEach(function () {
         props = {
             DEFAULT_LIFETIME: 'transient',
@@ -31,7 +33,9 @@ export default function () {
         registerStub.withArgs('test', typeFn, 'transient')
             .returns(newDescriptor);
 
-        registerStub.withArgs('test::provider', providerFn).returns('testprovider');
+        passiveProviderDescriptor =
+            passiveProviderFactory.createDescriptor('test', providerFn);
+        registerStub.withArgs('test::passive', providerFn).returns(passiveProviderDescriptor);
 
         assertLifetimeStub = sinon.stub(assertLifetimeModule, 'default');
     });
@@ -51,6 +55,6 @@ export default function () {
         registerInstantiable(props.types, 'test', typeFn, 'transient', providerFn);
 
         expect(props.types.test).toBe(newDescriptor);
-        expect(props.types.test.provider).toBe('testprovider');
+        expect(props.types.test.provider).toBe(passiveProviderDescriptor);
     });
 }

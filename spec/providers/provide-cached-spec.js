@@ -1,4 +1,5 @@
 import provideCached from 'providers/provide-cached';
+import sinon    from 'sinon';
 import autoStub      from '../_common/auto-stub';
 
 
@@ -38,7 +39,33 @@ export default function () {
         expect(provideCached({}, cache)).toBe(spec);
         expect(provideCached({}, cache)).toBe(spec);
         expect(provideCached({}, cache).provider()).toBe('test');
+        expect(provideCached({}, cache).provider()).toBe('test');
 
         expect(stub).toHaveBeenCalledOnce();
+    });
+
+    it('should call passive provider if present on every request', function () {
+        let spec = {
+            provider: function () {
+                return spec.passiveProviderSpec.provider({instance: 'test'});
+            },
+            passiveProviderSpec: {
+                provider: sinon.stub().callsFake((a)=>spec.passiveProviderSpec.dependencies[0].provider(a)),
+                dependencies: [{provider: function (adhocs) {return adhocs.instance;}}]
+            }
+        };
+
+        let stub = stubber.get('provideTransientModule::default');
+        stub.returns(spec);
+
+        let cache = {};
+
+        expect(provideCached({}, cache)).toBe(spec);
+        expect(provideCached({}, cache).provider()).toBe('test');
+        expect(provideCached({}, cache).provider()).toBe('test');
+        expect(provideCached({}, cache).provider()).toBe('test');
+
+        expect(stub).toHaveBeenCalledOnce();
+        expect(spec.passiveProviderSpec.provider).toHaveBeenCalledThrice();
     });
 }

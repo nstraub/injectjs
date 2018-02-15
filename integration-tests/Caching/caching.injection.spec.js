@@ -62,7 +62,7 @@ export default function() {
                             injector.registerType(`base_${dependency_lifetime}_type`, (function(){}), dependency_lifetime);
                             const second = injector.get(type);
 
-                            return expect(second.dependency).toBeInstanceOf(injector.types[`base_${dependency_lifetime}_type`].type);
+                            return expect(second.dependency).toBeInstanceOf(injector.getType(`base_${dependency_lifetime}_type`));
                         });
                     }
                 })(lifetime, dependency_lifetime)))

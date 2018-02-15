@@ -48,5 +48,5 @@ export default  function() {
 
     it('allows root lifetime types to be roots themselves', () => expect(() => injector.get('root_dependency')).not.toThrow());
 
-    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('root'));
+    describe('ad-hoc dependencies', get_adhoc_dependency_tests('root'));
 };

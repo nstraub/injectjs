@@ -5,19 +5,20 @@ import * as provideProviderModule from 'providers/provide-provider';
 
 import uuid                              from 'util/uuid';
 import {
-    buildRuntimeStores, defaultFactory, providerFactory
+    buildRuntimeStores, defaultFactory, passiveProviderFactory, providerFactory
 } from '../_common/data-structure-factory';
 import {provideTransient}                from 'providers';
 
 
 export default function () {
-    let transientDescriptor = defaultFactory.createDescriptor(function (a, b) {
-            this.c = a() + b();
-        }, ['a', 'b']),
-        transientSpec = defaultFactory.createSpec(transientDescriptor),
-        buildGraphStub;
+    let transientDescriptor, transientSpec, buildGraphStub;
+
+    transientSpec = defaultFactory.createSpec(transientDescriptor);
 
     beforeEach(function () {
+        transientDescriptor = defaultFactory.createDescriptor(function (a, b) {
+            this.c = a() + b();
+        }, ['a', 'b']);
         buildGraphStub = sinon.stub(buildGraphModule, 'default');
         buildGraphStub.withArgs(transientDescriptor).returns(transientSpec);
     });
@@ -50,17 +51,40 @@ export default function () {
     });
 
     describe('type has passive provider', function () {
-        it('should return the passive providers spec with itself as the first dependency spec', function () {
+        it('should call passive provider every time a new instance is requested', function () {
             let stub = sinon.stub(provideProviderModule, 'default'),
                 providerDescriptor = providerFactory.createDescriptor(),
                 providerSpec = providerFactory.createSpec(providerDescriptor);
 
+            providerSpec.provider = sinon.spy();
             stub.withArgs(providerDescriptor).returns(providerSpec);
             transientDescriptor.provider = providerDescriptor;
             let spec = provideTransient(transientDescriptor);
-            expect(spec).toBe(providerSpec);
-            expect(spec.dependencies.length).toEqual(3);
-            expect(spec.dependencies[0]).toBe(transientSpec);
+            spec.provider();
+            spec.provider();
+            spec.provider();
+
+            expect(providerSpec.provider).toHaveBeenCalledThrice();
+            expect(spec.passiveProviderSpec).toBe(providerSpec);
+            stub.restore();
+        });
+        it('should call passive provider every time a new dependency-less instance is requested', function () {
+            let stub = sinon.stub(provideProviderModule, 'default'),
+                providerDescriptor = passiveProviderFactory.createDescriptor(),
+                providerSpec = passiveProviderFactory.createSpec(providerDescriptor);
+
+            let spy = sinon.spy(providerSpec, 'provider');
+            stub.withArgs(providerDescriptor).returns(providerSpec);
+            transientDescriptor.provider = providerDescriptor;
+            delete transientDescriptor.dependencies;
+            transientDescriptor.type = function () {};
+            let spec = provideTransient(transientDescriptor);
+            spec.provider();
+            spec.provider();
+            spec.provider();
+
+            expect(spy).toHaveBeenCalledThrice();
+            expect(spec.passiveProviderSpec).toBe(providerSpec);
             stub.restore();
         });
     });

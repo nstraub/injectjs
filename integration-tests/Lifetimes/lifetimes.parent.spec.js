@@ -99,5 +99,5 @@ export default function() {
         return expect(type.third.root).toBe(type.second3.root);
     });
 
-    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('parent'));
+    describe('ad-hoc dependencies', get_adhoc_dependency_tests('parent'));
 };

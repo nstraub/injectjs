@@ -1,8 +1,8 @@
 import setup from './inject.spec.setup';
 const lifetimes = ['transient', 'root', 'state', 'singleton', 'parent'];
 let injector;
-const get_adhoc_dependency_tests = lifetime =>{};
-    /*function() {
+const get_adhoc_dependency_tests = lifetime =>
+    function() {
         beforeEach(function() {
             injector = setup.reset_injector();
 
@@ -20,7 +20,7 @@ const get_adhoc_dependency_tests = lifetime =>{};
             });
             setup.make_descriptor({
                 name: 'type_with_no_dependencies',
-                type() { return this.args = arguments; },
+                type() { this.args = arguments; },
                 lifetime
             });
 
@@ -42,14 +42,14 @@ const get_adhoc_dependency_tests = lifetime =>{};
         });
 
         it('injects ad-hoc dependency at instantiation time', function() {
-            const test = injector.inject('test_type');
+            const test = injector.inject('test_type').provider;
             const result = test({adhoc_dependency: 'test dependency'});
 
             return expect(result.adhoc_dependency).toBe('test dependency');
         });
 
         it('maintains proper dependency order', function() {
-            const test = injector.inject('ordered_test_type');
+            const test = injector.inject('ordered_test_type').provider;
             const result = test({b: 2, d: 4, f: 6});
 
             expect(result.f).toBe(6);
@@ -68,25 +68,25 @@ const get_adhoc_dependency_tests = lifetime =>{};
                 lifetime: 'transient'
             });
 
-            let test_provider = injector.inject('parent_adhoc_type');
+            let test_provider = injector.inject('parent_adhoc_type').provider;
 
             let result = test_provider({b: 2, d: 4, f: 6, adhoc_dependency: 'test dependency'});
 
-            expect(result.ordered_test_type).toBeInstanceOf(injector.types.ordered_test_type.type);
-            expect(result.test_type).toBeInstanceOf(injector.types.test_type.type);
+            expect(result.ordered_test_type).toBeInstanceOf(injector.getType('ordered_test_type'));
+            expect(result.test_type).toBeInstanceOf(injector.getType('test_type'));
 
-            test_provider = injector.inject('parent_adhoc_type');
+            test_provider = injector.inject('parent_adhoc_type').provider;
 
             result = test_provider({b: 2, d: 4, f: 6, adhoc_dependency: 'test dependency'});
 
-            expect(result.ordered_test_type).toBeInstanceOf(injector.types.ordered_test_type.type);
-            return expect(result.test_type).toBeInstanceOf(injector.types.test_type.type);
+            expect(result.ordered_test_type).toBeInstanceOf(injector.getType('ordered_test_type'));
+            return expect(result.test_type).toBeInstanceOf(injector.getType('test_type'));
         });
 
 
         return it('doesnt pass unwanted dependencies', function() {
-            return expect(injector.get('type_with_no_dependencies', {adhoc: 1}).args.length, this).toBe(0);
+            return expect(injector.get('type_with_no_dependencies', {adhoc: 1}).args.length).toBe(0);
         });
-    };*/
+    };
 
 export {lifetimes, get_adhoc_dependency_tests};

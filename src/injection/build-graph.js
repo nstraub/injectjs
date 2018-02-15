@@ -1,8 +1,9 @@
 import _      from 'lodash';
 import {uuid} from '../util';
 
-import {assertCircularReferences, getDescriptor} from './index';
-import {buildProvider}                           from '../providers';
+import {assertCircularReferences, buildGraph, getDescriptor} from './index';
+import {buildProvider}                                       from '../providers';
+
 
 export default function (descriptor, runtimeStores, parent, root) {
     let spec = {}, dependency_specs = [];
@@ -28,13 +29,14 @@ export default function (descriptor, runtimeStores, parent, root) {
                     return adhocs[dependency_name];
                 }
             };
-        }else {
+        } else {
             dependencyDescriptor.name = dependency_name;
             if (runtimeStores.cache[dependency_name] && runtimeStores.cache[dependency_name].descriptor.hashCode === dependencyDescriptor.hashCode) {
-                dependency_spec = runtimeStores.cache[dependency_name];
+                let cached_template = runtimeStores.cache[dependency_name];
+                dependency_spec = cached_template(buildGraph(dependencyDescriptor, runtimeStores, spec, spec.root));
             } else {
                 dependency_spec =
-                    buildProvider(runtimeStores, dependencyDescriptor, spec, spec.root);
+                    buildProvider(runtimeStores, dependencyDescriptor)(buildGraph(dependencyDescriptor, runtimeStores, spec, spec.root));
             }
         }
         dependency_specs.push(dependency_spec);

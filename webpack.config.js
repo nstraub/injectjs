@@ -1,16 +1,13 @@
 module.exports = {
     entry: {
-        main: './src/main.js'
+        main: './src/index.js'
     },
     output: {
         libraryTarget: 'umd',
-        filename: 'build/bundle.js'
+        filename: 'dist/inject.js'
     },
     resolve: {
-        modules: ['src', 'node_modules'],
-        alias: {
-            sinon: 'sinon/pkg/sinon'
-        }
+        modules: ['src', 'node_modules']
     },
     module: {
         rules: [

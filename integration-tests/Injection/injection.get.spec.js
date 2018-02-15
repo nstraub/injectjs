@@ -55,7 +55,7 @@ export default function() {
             setup.make_descriptor({
                 name: 'base_type',
                 type(root1) { this.root_provider = root1; },
-                dependencies: ['root1::provider']});
+                dependencies: ['root1']});
 
             setup.make_descriptor({
                 name: 'root1',

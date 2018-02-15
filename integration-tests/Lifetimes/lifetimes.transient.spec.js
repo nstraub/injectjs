@@ -16,7 +16,7 @@ export default function() {
     });
 
     it('creates one instance of the type per dependency requirement when they are part of a parent dependency', function() {
-        const instantiator = injector.inject('transient_depends_on_transient');
+        const instantiator = injector.inject('transient_depends_on_transient').provider;
         const first_test_instance = instantiator();
         const second_test_instance = instantiator();
 
@@ -34,5 +34,5 @@ export default function() {
     });
 
 
-    //describe('ad-hoc dependencies', get_adhoc_dependency_tests('transient'));
+    describe('ad-hoc dependencies', get_adhoc_dependency_tests('transient'));
 };

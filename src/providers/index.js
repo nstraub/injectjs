@@ -3,4 +3,5 @@ export {default as provideCached} from './provide-cached';
 export {default as provideRoot} from './provide-root';
 export {default as provideParent} from './provide-parent';
 export {default as provideProvider} from './provide-provider';
+export {default as provideState} from './provide-state';
 export {default as buildProvider} from './build-provider';

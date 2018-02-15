@@ -1,12 +1,29 @@
+import uuid            from '../util/uuid';
 import {provideCached} from './index';
-import {last}                            from 'ramda';
 
 export default function (descriptor, ...args) {
-    const root = last(args);
+    const factory = function (spec) {
+        return {
+            id: uuid.getNext(),
+            descriptor,
+            spec,
+            provider(adhoc) {
+                let root = spec.root;
 
-    if (root.roots === undefined) {
-        root.roots = {};
-    }
+                if (root === undefined) {
+                    root = {};
+                }
+                if (root.roots === undefined) {
+                    root.roots = {};
+                }
 
-    return provideCached(descriptor, root.roots, ...args);
+                return provideCached(descriptor, root.roots, args[0], spec.parent, spec.root)
+                    .provider
+                    .call(this, adhoc);
+            }
+        };
+    };
+
+    factory.descriptor = descriptor;
+    return factory;
 };

@@ -1,8 +1,8 @@
 import {buildAnonymousDescriptor} from './index';
 
-export default function (injector, name) {
+export default function (stores, name) {
     if (typeof name === 'string') {
-        return injector.fakes[name] || injector.types[name] || injector.providers[name];
+        return stores.fakes[name] || stores.types[name] || stores.providers[name];
     } else if (typeof name === 'undefined') {
         return {};
     }
