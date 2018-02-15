@@ -33,16 +33,7 @@ export const providerFactory = {
             dependencies: ['b', 'c']
         };
     },
-    createSpec(descriptor) {
-        return {
-            id: ++i,
-            dependencies: [
-                {id: ++i, provider: () => () => 5, descriptor: 'test'},
-                {id: ++i, provider: () => () => 3, descriptor: 'test2'}
-            ],
-            descriptor
-        };
-    }
+    createSpec: defaultFactory.createSpec
 };
 
 export const passiveProviderFactory = {

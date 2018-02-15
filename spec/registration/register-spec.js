@@ -67,7 +67,7 @@ export default function () {
     it('should return correct descriptor when type is array of length 1', function () {
         expect(register('test', [typeFn], 'transient')).toEqual(newDescriptor);
     });
-    it('should throw an exception if passed type is neither arrya nor function', function () {
+    it('should throw an exception if passed type is neither array nor function', function () {
         expect(() => register('test', undefined, 'transient'))
             .toThrow('type must be a function or an array');
     });

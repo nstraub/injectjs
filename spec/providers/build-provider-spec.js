@@ -1,4 +1,4 @@
-import autoStub from '../_common/auto-stub';
+import autoStub      from '../_common/auto-stub';
 import buildProvider from 'providers/build-provider';
 
 
@@ -14,30 +14,23 @@ export default function () {
     beforeEach(stubber.stub);
     afterEach(stubber.unstub);
 
+    [
+        ['transient', 'provideTransient'], ['singleton', 'provideCached'],
+        ['parent', 'provideParent'], ['root', 'provideRoot']
+    ].forEach(function ([when, what]) {
+        it(`should call ${what} when descriptor lifetime is ${when}`, function () {
+            buildProvider({}, {lifetime: when});
+
+            expect(stubber.get(`${what}Module::default`))
+                .toHaveBeenCalledOnce();
+        });
+    });
+
     it('should call provideProvider when descriptor has no lifetime', function () {
         buildProvider({}, {});
 
-        expect(stubber.get('provideProviderModule::default')).toHaveBeenCalledOnce();
-    });
-    it('should call provideTransient when descriptor lifetime is transient', function () {
-        buildProvider({}, {lifetime: 'transient'});
-
-        expect(stubber.get('provideTransientModule::default')).toHaveBeenCalledOnce();
-    });
-    it('should call provideCached when descriptor lifetime is singleton', function () {
-        buildProvider({}, {lifetime: 'singleton'});
-
-        expect(stubber.get('provideCachedModule::default')).toHaveBeenCalledOnce();
-    });
-    it('should call provideParent when descriptor lifetime is parent', function () {
-        buildProvider({}, {lifetime: 'parent'});
-
-        expect(stubber.get('provideParentModule::default')).toHaveBeenCalledOnce();
-    });
-    it('should call provideRoot when descriptor lifetime is root', function () {
-        buildProvider({}, {lifetime: 'root'});
-
-        expect(stubber.get('provideRootModule::default')).toHaveBeenCalledOnce();
+        expect(stubber.get('provideProviderModule::default'))
+            .toHaveBeenCalledOnce();
     });
 
     it('should cache providers for named types', function () {
@@ -45,7 +38,7 @@ export default function () {
             cache: {}
         };
 
-        stubber.get('provideRootModule::default').returns({name:'test'});
+        stubber.get('provideRootModule::default').returns({name: 'test'});
         buildProvider(store, {name: 'test', lifetime: 'root'});
 
         expect(store.cache.test).not.toBeUndefined();

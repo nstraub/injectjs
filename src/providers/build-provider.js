@@ -1,14 +1,7 @@
+import {identityf}                               from '../../spec/util/functions';
 import * as providers                            from './index';
 import {compose, join, lensIndex, over, toUpper} from 'ramda';
-import {identity}        from 'ramda';
 
-
-
-const identityf = function (a) {
-    return function () {
-        return identity(a);
-    };
-};
 
 const toTitle = compose(
     join(''),

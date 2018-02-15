@@ -1,16 +1,10 @@
 import {buildGraph}      from '../injection';
 import {provideProvider} from './index';
 import uuid              from '../util/uuid';
-import {identity}        from 'ramda';
+import {identityf}       from '../../spec/util/functions';
 import {cleanup}         from './provide-provider';
 
 
-
-const identityf = function (a) {
-    return function () {
-        return identity(a);
-    };
-};
 const create_object = Object.create;
 
 export default function (descriptor, ...args) {

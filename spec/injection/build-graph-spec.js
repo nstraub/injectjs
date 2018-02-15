@@ -12,6 +12,9 @@ stubber.addStubDirective('getDescriptorModule');
 stubber.addStubDirective('buildProviderModule');
 
 export default function () {
+    let fn = function (a, b) {
+        this.c = a.id + b.id;
+    };
     beforeEach(stubber.stub);
     afterEach(stubber.unstub);
     beforeEach(function () {
@@ -21,10 +24,6 @@ export default function () {
 
     it('should build the appropriate specs for each dependency passed in descriptor', function () {
         stubber.get('buildProviderModule::default').callsFake(()=> constantValueFactory.createSpec);
-
-        let fn = function (a, b) {
-            this.c = a.id + b.id;
-        };
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         let result = buildGraph(descriptor, buildRuntimeStores());
         expect(result.descriptor.type).toBe(fn);
@@ -35,9 +34,6 @@ export default function () {
     it('should set the parent and root on each spec it builds', function () {
         stubber.get('buildProviderModule::default').callsFake((a, b) => (spec)=>spec);
 
-        let fn = function (a, b) {
-            this.c = a.id + b.id;
-        };
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         let result = buildGraph(descriptor, buildRuntimeStores());
         expect(result.parent).toBeUndefined();
@@ -57,10 +53,6 @@ export default function () {
 
         buildProviderModule.callsFake((a, b, c, d) => ()=>buildGraph(b, a, c, d));
         let assertCircular = stubber.get('assertCircularReferencesModule::default');
-
-        let fn = function (a, b) {
-            this.c = a.id + b.id;
-        };
 
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         buildGraph(descriptor, buildRuntimeStores());
