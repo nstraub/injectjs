@@ -5,6 +5,24 @@ import {assertCircularReferences, buildGraph, getDescriptor} from './index';
 import {buildProvider}                                       from '../providers';
 
 
+const getCachedOrBuild = function (cache, runtimeStores, descriptor) {
+    if (cache && cache.descriptor.hashCode === descriptor.hashCode) {
+        return cache;
+    } else {
+        return buildProvider(runtimeStores, descriptor);
+    }
+};
+
+let adhocProvider = function (spec, dependency_name) {
+    return {
+        id: uuid.getNext(),
+        parent: spec,
+        root: spec.root,
+        provider: function (adhocs) {
+            return adhocs[dependency_name];
+        }
+    };
+};
 export default function (descriptor, runtimeStores, parent, root) {
     let spec = {}, dependency_specs = [];
 
@@ -21,23 +39,12 @@ export default function (descriptor, runtimeStores, parent, root) {
         let dependency_spec;
         let dependencyDescriptor = getDescriptor(runtimeStores, dependency_name.split('::provider')[0]);
         if (dependencyDescriptor === undefined) {
-            dependency_spec = {
-                id: uuid.getNext(),
-                parent: spec,
-                root: spec.root,
-                provider: function (adhocs) {
-                    return adhocs[dependency_name];
-                }
-            };
+            dependency_spec = adhocProvider(spec, dependency_name);
         } else {
             dependencyDescriptor.name = dependency_name;
-            if (runtimeStores.cache[dependency_name] && runtimeStores.cache[dependency_name].descriptor.hashCode === dependencyDescriptor.hashCode) {
-                let cached_template = runtimeStores.cache[dependency_name];
-                dependency_spec = cached_template(buildGraph(dependencyDescriptor, runtimeStores, spec, spec.root));
-            } else {
-                dependency_spec =
-                    buildProvider(runtimeStores, dependencyDescriptor)(buildGraph(dependencyDescriptor, runtimeStores, spec, spec.root));
-            }
+            let dependencyGraph = buildGraph(dependencyDescriptor, runtimeStores, spec, spec.root);
+
+            dependency_spec = getCachedOrBuild(runtimeStores.cache[dependency_name], runtimeStores, dependencyDescriptor)(dependencyGraph);
         }
         dependency_specs.push(dependency_spec);
 

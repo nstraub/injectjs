@@ -8,6 +8,7 @@ export default function () {
 
     beforeEach(function () {
         pcStub = sinon.stub(provideCachedModule, 'default');
+        pcStub.returns({provider: sinon.stub()});
     });
 
     afterEach(function () {
@@ -15,17 +16,17 @@ export default function () {
     });
 
     it('should return cache provider for root.roots', function () {
-        provideRoot({},{},{},{roots:{}});
+        provideRoot({},{},{})({root: {roots:{}}}).provider();
         expect(pcStub).toHaveBeenCalledOnce();
     });
     it('should create root.roots if it does not exist', function () {
         let root = {};
-        provideRoot({},{},{},root);
+        provideRoot({},{},{})({root}).provider();
         expect(root.roots).not.toBeUndefined();
     });
     it('should use an empty object if no root provided', function () {
         let stores = {};
-        provideRoot({},stores);
+        provideRoot({})(stores).provider();
 
         expect(stores.roots).toBeUndefined();
     });

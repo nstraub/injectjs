@@ -13,7 +13,7 @@ export default function () {
         let fn = sinon.spy();
         stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}});
 
-        let spec = provideProvider({type: fn}, {}, {}, {});
+        let spec = provideProvider({type: fn}, {}, {}, {})({descriptor: {type: fn}});
 
         spec.provider();
         expect(fn).toHaveBeenCalledOnce();
@@ -24,7 +24,7 @@ export default function () {
         let fn2 = sinon.spy();
         stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}, dependencies: [{provider: fn2}]});
 
-        let spec = provideProvider({type: fn});
+        let spec = provideProvider({type: fn})({descriptor: {type: fn}, dependencies: [{provider: fn2}]});
 
         spec.provider();
         expect(fn).toHaveBeenCalledOnce();

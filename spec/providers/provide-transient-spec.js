@@ -32,7 +32,7 @@ export default function () {
         it('should return a function which returns an instance of type', function () {
             let fakeType = sinon.spy(),
                 stubUuid = sinon.stub(uuid, 'getNext'),
-                spec = provideTransient({type: fakeType, name:'fake'});
+                spec = provideTransient({type: fakeType, name:'fake'})(transientSpec);
 
             stubUuid.returns(20);
             spec.provider();
@@ -43,8 +43,8 @@ export default function () {
 
     describe('type has dependencies', function () {
         it('should get its spec object with its dependency graph', function () {
-            let spec = provideTransient(transientDescriptor);
-            expect(spec).toBe(transientSpec);
+            let spec = provideTransient(transientDescriptor)(transientSpec);
+            expect(spec.spec).toBe(transientSpec);
             let instance = spec.provider();
             expect(instance.c).toEqual(8);
         });
@@ -54,37 +54,41 @@ export default function () {
         it('should call passive provider every time a new instance is requested', function () {
             let stub = sinon.stub(provideProviderModule, 'default'),
                 providerDescriptor = providerFactory.createDescriptor(),
-                providerSpec = providerFactory.createSpec(providerDescriptor);
+                providerSpec = providerFactory.createSpec(providerDescriptor),
+                providerFactoryStub = sinon.stub();
 
             providerSpec.provider = sinon.spy();
-            stub.withArgs(providerDescriptor).returns(providerSpec);
+            providerFactoryStub.returns({spec: providerSpec, provider: providerSpec.provider});
+            stub.withArgs(providerDescriptor).returns(providerFactoryStub);
             transientDescriptor.provider = providerDescriptor;
-            let spec = provideTransient(transientDescriptor);
+            let spec = provideTransient(transientDescriptor)(transientSpec);
             spec.provider();
             spec.provider();
             spec.provider();
 
             expect(providerSpec.provider).toHaveBeenCalledThrice();
-            expect(spec.passiveProviderSpec).toBe(providerSpec);
+            expect(spec.passiveProvider.spec).toBe(providerSpec);
             stub.restore();
         });
         it('should call passive provider every time a new dependency-less instance is requested', function () {
             let stub = sinon.stub(provideProviderModule, 'default'),
                 providerDescriptor = passiveProviderFactory.createDescriptor(),
-                providerSpec = passiveProviderFactory.createSpec(providerDescriptor);
+                providerSpec = passiveProviderFactory.createSpec(providerDescriptor),
+                providerFactoryStub = sinon.stub();
 
             let spy = sinon.spy(providerSpec, 'provider');
-            stub.withArgs(providerDescriptor).returns(providerSpec);
+            providerFactoryStub.returns({spec: providerSpec, provider: providerSpec.provider});
+            stub.withArgs(providerDescriptor).returns(providerFactoryStub);
             transientDescriptor.provider = providerDescriptor;
             delete transientDescriptor.dependencies;
             transientDescriptor.type = function () {};
-            let spec = provideTransient(transientDescriptor);
+            let spec = provideTransient(transientDescriptor)(transientSpec);
             spec.provider();
             spec.provider();
             spec.provider();
 
             expect(spy).toHaveBeenCalledThrice();
-            expect(spec.passiveProviderSpec).toBe(providerSpec);
+            expect(spec.passiveProvider.spec).toBe(providerSpec);
             stub.restore();
         });
     });
@@ -93,7 +97,7 @@ export default function () {
         it('should return provider instead of instance', function () {
             transientDescriptor.name += '::provider';
 
-            const result = provideTransient(transientDescriptor, buildRuntimeStores());
+            const result = provideTransient(transientDescriptor, buildRuntimeStores())(transientSpec);
 
             expect(result.provider()()).toBeInstanceOf(transientDescriptor.type);
         });

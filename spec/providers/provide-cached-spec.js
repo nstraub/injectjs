@@ -17,8 +17,10 @@ export default function () {
                 return 'test';
             }
         };
+        let factoryStub = sinon.stub();
+        factoryStub.returns(spec);
 
-        stubber.get('provideTransientModule::default').returns(spec);
+        stubber.get('provideTransientModule::default').returns(factoryStub);
         let cached = provideCached({}, {});
 
         expect(cached).toBe(spec);
@@ -30,9 +32,11 @@ export default function () {
                 return 'test';
             }
         };
+        let factoryStub = sinon.stub();
+        factoryStub.returns(spec);
 
         let stub = stubber.get('provideTransientModule::default');
-        stub.returns(spec);
+        stub.returns(factoryStub);
 
         let cache = {};
 
@@ -54,9 +58,11 @@ export default function () {
                 dependencies: [{provider: function (adhocs) {return adhocs.instance;}}]
             }
         };
+        let factoryStub = sinon.stub();
+        factoryStub.returns(spec);
 
         let stub = stubber.get('provideTransientModule::default');
-        stub.returns(spec);
+        stub.returns(factoryStub);
 
         let cache = {};
 

@@ -20,7 +20,7 @@ export default function () {
     });
 
     it('should build the appropriate specs for each dependency passed in descriptor', function () {
-        stubber.get('buildProviderModule::default').callsFake(constantValueFactory.createSpec);
+        stubber.get('buildProviderModule::default').callsFake(()=> constantValueFactory.createSpec);
 
         let fn = function (a, b) {
             this.c = a.id + b.id;
@@ -33,7 +33,7 @@ export default function () {
         expect(result.dependencies[1]).toEqual(constantValueFactory.createSpec());
     });
     it('should set the parent and root on each spec it builds', function () {
-        stubber.get('buildProviderModule::default').callsFake((a, b, c, d) => buildGraph(b, a, c, d));
+        stubber.get('buildProviderModule::default').callsFake((a, b) => (spec)=>spec);
 
         let fn = function (a, b) {
             this.c = a.id + b.id;
@@ -55,7 +55,7 @@ export default function () {
 
         let buildProviderModule = stubber.get('buildProviderModule::default');
 
-        buildProviderModule.callsFake((a, b, c, d) => buildGraph(b, a, c, d));
+        buildProviderModule.callsFake((a, b, c, d) => ()=>buildGraph(b, a, c, d));
         let assertCircular = stubber.get('assertCircularReferencesModule::default');
 
         let fn = function (a, b) {

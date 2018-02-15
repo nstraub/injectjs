@@ -24,11 +24,6 @@ export default function () {
 
         expect(stubber.get('provideTransientModule::default')).toHaveBeenCalledOnce();
     });
-    it('should call provideCached when descriptor lifetime is state', function () {
-        buildProvider({}, {lifetime: 'state'});
-
-        expect(stubber.get('provideCachedModule::default')).toHaveBeenCalledOnce();
-    });
     it('should call provideCached when descriptor lifetime is singleton', function () {
         buildProvider({}, {lifetime: 'singleton'});
 

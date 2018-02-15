@@ -16,17 +16,17 @@ export default function () {
     });
 
     it('should return cache provider for topmost_parent.children', function () {
-        provideParent({name: 'test'},{},{children:{test: {}}},{}).provider();
+        provideParent({name: 'test'},{})({parent:{children:{test: {}}}}).provider();
         expect(pcStub).toHaveBeenCalledOnce();
     });
     it('should find parent if no parent with coinciding children exist', function () {
         let parent = {descriptor: {dependencies: []}, parent: {descriptor:{dependencies:['test']}}};
-        provideParent({name: 'test'},{},parent,{}).provider();
+        provideParent({name: 'test'},{})({parent}).provider();
         expect(parent.parent.children).not.toBeUndefined();
     });
     it('should use an empty object if no parent provided', function () {
         let stores = {};
-        provideParent({},stores).provider();
+        provideParent({})(stores).provider();
 
         expect(stores.children).toBeUndefined();
     });
