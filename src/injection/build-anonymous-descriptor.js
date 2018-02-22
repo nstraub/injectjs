@@ -1,4 +1,4 @@
-import {getDependencyNames}   from 'util';
+import {getDependencyNames}   from '../util';
 
 export default function (name) { // for when inject is called with an anonymous function
     if (typeof name === 'function') {
@@ -6,10 +6,9 @@ export default function (name) { // for when inject is called with an anonymous 
             type: name,
             dependencies: getDependencyNames(name)
         };
-    } else {
-        return {
-            type: name[name.length-1],
-            dependencies: name.slice(0, name.length-1)
-        };
     }
+    return {
+        type: name[name.length - 1],
+        dependencies: name.slice(0, name.length - 1)
+    };
 }

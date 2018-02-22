@@ -2,7 +2,6 @@ import {buildGraph}      from '../injection';
 import {provideProvider} from './index';
 import uuid              from '../util/uuid';
 import {identityf}       from '../../spec/util/functions';
-import {cleanup}         from './provide-provider';
 
 
 const create_object = Object.create;
@@ -48,14 +47,12 @@ export default function (descriptor, ...args) {
             };
         }
 
-        if (args.length <= 1 || descriptor.name.indexOf('::provider') > -1) {
-            let provider = template.provider;
-            template.provider = function (adhoc) {
-                const instance = provider.call(this, adhoc);
-                cleanup(spec);
-                return instance;
-            };
-        }
+        let provider = template.provider;
+        template.provider = function (adhoc) {
+            const instance = provider.call(this, adhoc);
+            delete spec.children;
+            return instance;
+        };
 
         if (descriptor.name.indexOf('::provider') > -1) {
             template.provider = identityf(template.provider);

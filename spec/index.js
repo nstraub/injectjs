@@ -14,8 +14,8 @@ import {
     provideTransient_spec
 }                                                          from './providers';
 import {
-    assertCircularReferences_spec, buildGraph_spec, getDescriptor_spec
-}                                                          from './injection';
+    assertCircularReferences_spec, buildAnonymousDespcriptor_spec, buildGraph_spec, getDescriptor_spec
+} from './injection';
 
 describe('InjectJS', function () {
     beforeAll(instanceOfMatcher);
@@ -46,6 +46,7 @@ describe('InjectJS', function () {
 
     describe('Injection', function () {
         describe('Build Graph', buildGraph_spec);
+        describe('Build Anonymous Descriptor', buildAnonymousDespcriptor_spec);
         describe('Get Descriptor', getDescriptor_spec);
         describe('Assert Circular References', assertCircularReferences_spec);
     });

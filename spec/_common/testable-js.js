@@ -1,6 +1,7 @@
 import createTester from 'testable-js';
 
 import uuid                                from 'util/uuid';
+import * as getDependencyNamesModule       from 'util/get-dependency-names';
 import * as getDescriptorModule            from 'injection/get-descriptor';
 import * as assertCircularReferencesModule from 'injection/assert-circular-references';
 import * as buildGraphModule               from 'injection/build-graph';
@@ -18,6 +19,7 @@ import * as buildAnonymousDescriptorModule from '../../src/injection/build-anony
 const tester = createTester();
 
 tester.registerStub('getUuid', uuid, 'getNext');
+tester.registerStub('getDependencyNames', getDependencyNamesModule, 'default');
 tester.registerStub('getDescriptor', getDescriptorModule, 'default');
 tester.registerStub('assertCircularReferences', assertCircularReferencesModule, 'default');
 tester.registerStub('buildGraph', buildGraphModule, 'default');
