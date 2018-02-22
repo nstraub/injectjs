@@ -1,9 +1,12 @@
 import {buildGraph} from '../../src/injection';
-import autoStub     from '../_common/auto-stub';
 import {
     buildRuntimeStores,
     constantValueFactory, defaultFactory
 } from '../_common/data-structure-factory';
+
+import td from 'testdouble';
+
+uuidStub = td.replace('../../src/util/uuid').default;
 
 const stubber = autoStub();
 stubber.addStubDirective('uuid', 'getNext');
