@@ -4,38 +4,35 @@ import {
     constantValueFactory, defaultFactory
 } from '../_common/data-structure-factory';
 
-import td from 'testdouble';
+import testFaker from '../_common/testable-js';
 
-uuidStub = td.replace('../../src/util/uuid').default;
-
-const stubber = autoStub();
-stubber.addStubDirective('uuid', 'getNext');
-stubber.addStubDirective('assertCircularReferencesModule');
-stubber.addStubDirective('getDescriptorModule');
-stubber.addStubDirective('buildProviderModule');
 
 export default function () {
     let fn = function (a, b) {
         this.c = a.id + b.id;
     };
-    beforeEach(stubber.stub);
-    afterEach(stubber.unstub);
-    beforeEach(function () {
-        stubber.get('uuid::getNext').callThrough();
-        stubber.get('getDescriptorModule::default').callsFake(constantValueFactory.createDescriptor);
+    beforeAll(function () {
+        testFaker.setActiveFakes(['getUuid', 'assertCircularReferences', 'getDescriptor', 'buildProvider']);
+        testFaker.addAction('getUuid', 'callThrough', 'callThrough');
+        testFaker.addAction('getDescriptor', 'createConstantDescriptor', 'callsFake', constantValueFactory.createDescriptor);
     });
+    beforeEach(testFaker.activateFakes);
+    afterEach(testFaker.restoreFakes);
+    afterAll(testFaker.clearActions);
 
-    it('should build the appropriate specs for each dependency passed in descriptor', function () {
-        stubber.get('buildProviderModule::default').callsFake(()=> constantValueFactory.createSpec);
+
+    it('should build the appropriate specs for each dependency passed in descriptor', testFaker.harness(function (buildProvider) {
+        buildProvider.callsFake(()=> constantValueFactory.createSpec);
+
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         let result = buildGraph(descriptor, buildRuntimeStores());
         expect(result.descriptor.type).toBe(fn);
         expect(result.dependencies.length).toBe(2);
         expect(result.dependencies[0]).toEqual(constantValueFactory.createSpec());
         expect(result.dependencies[1]).toEqual(constantValueFactory.createSpec());
-    });
-    it('should set the parent and root on each spec it builds', function () {
-        stubber.get('buildProviderModule::default').callsFake((a, b) => (spec)=>spec);
+    }, 'buildProvider'));
+    it('should set the parent and root on each spec it builds', testFaker.harness(function (buildProvider) {
+        buildProvider.callsFake((a, b) => (spec)=>spec);
 
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         let result = buildGraph(descriptor, buildRuntimeStores());
@@ -47,18 +44,18 @@ export default function () {
 
         expect(result.dependencies[1].parent).toBe(result);
         expect(result.dependencies[1].root).toBe(result);
-    });
-    it('should assert circular references', function () {
-        stubber.get('getDescriptorModule::default').onFirstCall().callsFake((a, b) => defaultFactory.createDescriptor(b, ['a','b']));
-        stubber.get('getDescriptorModule::default').onSecondCall().callsFake((a, b) => defaultFactory.createDescriptor(b, ['a','b']));
+    }, 'buildProvider'));
 
-        let buildProviderModule = stubber.get('buildProviderModule::default');
+    it('should assert circular references', testFaker.harness(function (buildProviderModule, assertCircular, getDescriptor) {
+        let createDefaultDescriptor = (a, b) => defaultFactory.createDescriptor(b, ['a', 'b']);
+        getDescriptor.onFirstCall().callsFake(createDefaultDescriptor);
+        getDescriptor.onSecondCall().callsFake(createDefaultDescriptor);
 
-        buildProviderModule.callsFake((a, b, c, d) => ()=>buildGraph(b, a, c, d));
-        let assertCircular = stubber.get('assertCircularReferencesModule::default');
+
+        buildProviderModule.callsFake((a, b, c, d) => (spec)=>spec);
 
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         buildGraph(descriptor, buildRuntimeStores());
         expect(assertCircular).toHaveBeenCalledTwice();
-    });
+    }, 'buildProvider', 'assertCircularReferences', 'getDescriptor'));
 };

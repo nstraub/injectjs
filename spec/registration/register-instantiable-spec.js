@@ -1,4 +1,4 @@
-import sinon from 'sinon';
+import testFaker from '../_common/testable-js';
 
 import * as registerModule       from 'registration/register';
 import * as assertLifetimeModule from 'registration/assert-lifetime';
@@ -29,7 +29,7 @@ export default function () {
             fakes: {},
             types: {}
         };
-        registerStub = sinon.stub(registerModule, 'default');
+        registerStub = testFaker.stub(registerModule, 'default');
         registerStub.withArgs('test', typeFn, 'transient')
             .returns(newDescriptor);
 
@@ -37,7 +37,7 @@ export default function () {
             passiveProviderFactory.createDescriptor('test', providerFn);
         registerStub.withArgs('test::passive', providerFn).returns(passiveProviderDescriptor);
 
-        assertLifetimeStub = sinon.stub(assertLifetimeModule, 'default');
+        assertLifetimeStub = testFaker.stub(assertLifetimeModule, 'default');
     });
 
     afterEach(function () {

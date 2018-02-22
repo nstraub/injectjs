@@ -1,17 +1,18 @@
 import provideProvider from 'providers/provide-provider';
-import sinon from 'sinon';
-import autoStub from '../_common/auto-stub';
+import testFaker from '../_common/testable-js';
 
-let stubber = autoStub();
 
-stubber.addStubDirective('buildGraphModule');
 export default function () {
-    beforeEach(stubber.stub);
-    afterEach(stubber.unstub);
+
+    beforeAll(function () {
+        testFaker.setActiveFakes(['buildGraph']);
+    });
+    beforeEach(testFaker.activateFakes);
+    afterEach(testFaker.restoreFakes);
 
     it('should return a spec which runs the provided function when called', function () {
-        let fn = sinon.spy();
-        stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}});
+        let fn = testFaker.stub();
+        testFaker.getFake('buildGraph').returns({descriptor: {type: fn}});
 
         let spec = provideProvider({type: fn}, {}, {}, {})({descriptor: {type: fn}});
 
@@ -20,9 +21,9 @@ export default function () {
     });
 
     it('should return a spec which runs the provided function passing its dependencies when called', function () {
-        let fn = sinon.spy();
-        let fn2 = sinon.spy();
-        stubber.get('buildGraphModule::default').returns({descriptor: {type: fn}, dependencies: [{provider: fn2}]});
+        let fn = testFaker.stub();
+        let fn2 = testFaker.stub();
+        testFaker.getFake('buildGraph').returns({descriptor: {type: fn}, dependencies: [{provider: fn2}]});
 
         let spec = provideProvider({type: fn})({descriptor: {type: fn}, dependencies: [{provider: fn2}]});
 

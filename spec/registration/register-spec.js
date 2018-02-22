@@ -1,4 +1,4 @@
-import sinon                         from 'sinon';
+import testFaker from '../_common/testable-js';
 
 import register                      from 'registration/register';
 import * as assertionsModule         from 'registration/assertions';
@@ -20,10 +20,10 @@ export default function () {
 
     beforeEach(function () {
         Object.keys(assertionsModule).forEach(function (key) {
-            stubs.push(sinon.stub(assertionsModule, key));
+            stubs.push(testFaker.stub(assertionsModule, key));
         });
-        stubs.push(sinon.stub(getDependencyNamesModule, 'default'));
-        stubs.push(sinon.stub(uuid, 'getNext').returns(2));
+        stubs.push(testFaker.stub(getDependencyNamesModule, 'default'));
+        stubs.push(testFaker.stub(uuid, 'getNext').returns(2));
     });
 
     afterEach(function () {

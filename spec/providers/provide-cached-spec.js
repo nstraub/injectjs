@@ -1,15 +1,16 @@
 import provideCached from 'providers/provide-cached';
-import sinon    from 'sinon';
-import autoStub      from '../_common/auto-stub';
+
+import testFaker from '../_common/testable-js';
 
 
-let stubber = autoStub();
-
-stubber.addStubDirective('provideTransientModule');
 
 export default function () {
-    beforeEach(stubber.stub);
-    afterEach(stubber.unstub);
+
+    beforeAll(function () {
+        testFaker.setActiveFakes(['provideTransient']);
+    });
+    beforeEach(testFaker.activateFakes);
+    afterEach(testFaker.restoreFakes);
 
     it('should return new spec when no spec is cached', function () {
         let spec = {
@@ -17,10 +18,10 @@ export default function () {
                 return 'test';
             }
         };
-        let factoryStub = sinon.stub();
+        let factoryStub = testFaker.stub();
         factoryStub.returns(spec);
 
-        stubber.get('provideTransientModule::default').returns(factoryStub);
+        testFaker.getFake('provideTransient').returns(factoryStub);
         let cached = provideCached({}, {});
 
         expect(cached).toBe(spec);
@@ -32,10 +33,10 @@ export default function () {
                 return 'test';
             }
         };
-        let factoryStub = sinon.stub();
+        let factoryStub = testFaker.stub();
         factoryStub.returns(spec);
 
-        let stub = stubber.get('provideTransientModule::default');
+        let stub = testFaker.getFake('provideTransient');
         stub.returns(factoryStub);
 
         let cache = {};
@@ -54,14 +55,14 @@ export default function () {
                 return spec.passiveProviderSpec.provider({instance: 'test'});
             },
             passiveProviderSpec: {
-                provider: sinon.stub().callsFake((a)=>spec.passiveProviderSpec.dependencies[0].provider(a)),
+                provider: testFaker.stub().callsFake((a)=>spec.passiveProviderSpec.dependencies[0].provider(a)),
                 dependencies: [{provider: function (adhocs) {return adhocs.instance;}}]
             }
         };
-        let factoryStub = sinon.stub();
+        let factoryStub = testFaker.stub();
         factoryStub.returns(spec);
 
-        let stub = stubber.get('provideTransientModule::default');
+        let stub = testFaker.getFake('provideTransient');
         stub.returns(factoryStub);
 
         let cache = {};

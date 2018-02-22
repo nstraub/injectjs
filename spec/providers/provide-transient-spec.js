@@ -1,8 +1,6 @@
-import sinon from 'sinon';
-
-import * as buildGraphModule      from 'injection/build-graph';
 import * as provideProviderModule from 'providers/provide-provider';
 
+import testFaker from '../_common/testable-js';
 import uuid                              from 'util/uuid';
 import {
     buildRuntimeStores, defaultFactory, passiveProviderFactory, providerFactory
@@ -11,6 +9,9 @@ import {provideTransient}                from 'providers';
 
 
 export default function () {
+    beforeAll(function () {
+        testFaker.setActiveFakes(['buildGraph']);
+    });
     let transientDescriptor, transientSpec, buildGraphStub;
 
     transientSpec = defaultFactory.createSpec(transientDescriptor);
@@ -19,7 +20,8 @@ export default function () {
         transientDescriptor = defaultFactory.createDescriptor(function (a, b) {
             this.c = a() + b();
         }, ['a', 'b']);
-        buildGraphStub = sinon.stub(buildGraphModule, 'default');
+        testFaker.activateFakes();
+        buildGraphStub = testFaker.getFake('buildGraph');
         buildGraphStub.withArgs(transientDescriptor).returns(transientSpec);
     });
 
@@ -30,8 +32,8 @@ export default function () {
 
     describe('type has no dependencies', function () {
         it('should return a function which returns an instance of type', function () {
-            let fakeType = sinon.spy(),
-                stubUuid = sinon.stub(uuid, 'getNext'),
+            let fakeType = testFaker.stub(),
+                stubUuid = testFaker.stub(uuid, 'getNext'),
                 spec = provideTransient({type: fakeType, name:'fake'})(transientSpec);
 
             stubUuid.returns(20);
@@ -52,12 +54,12 @@ export default function () {
 
     describe('type has passive provider', function () {
         it('should call passive provider every time a new instance is requested', function () {
-            let stub = sinon.stub(provideProviderModule, 'default'),
+            let stub = testFaker.stub(provideProviderModule, 'default'),
                 providerDescriptor = providerFactory.createDescriptor(),
                 providerSpec = providerFactory.createSpec(providerDescriptor),
-                providerFactoryStub = sinon.stub();
+                providerFactoryStub = testFaker.stub();
 
-            providerSpec.provider = sinon.spy();
+            providerSpec.provider = testFaker.stub();
             providerFactoryStub.returns({spec: providerSpec, provider: providerSpec.provider});
             stub.withArgs(providerDescriptor).returns(providerFactoryStub);
             transientDescriptor.provider = providerDescriptor;
@@ -71,12 +73,12 @@ export default function () {
             stub.restore();
         });
         it('should call passive provider every time a new dependency-less instance is requested', function () {
-            let stub = sinon.stub(provideProviderModule, 'default'),
+            let stub = testFaker.stub(provideProviderModule, 'default'),
                 providerDescriptor = passiveProviderFactory.createDescriptor(),
                 providerSpec = passiveProviderFactory.createSpec(providerDescriptor),
-                providerFactoryStub = sinon.stub();
+                providerFactoryStub = testFaker.stub();
 
-            let spy = sinon.spy(providerSpec, 'provider');
+            let spy = testFaker.stub(providerSpec, 'provider');
             providerFactoryStub.returns({spec: providerSpec, provider: providerSpec.provider});
             stub.withArgs(providerDescriptor).returns(providerFactoryStub);
             transientDescriptor.provider = providerDescriptor;

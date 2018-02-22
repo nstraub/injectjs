@@ -4,8 +4,8 @@ import instanceOfMatcher from './_common/instance-of-matcher';
 
 import {
     assertions_spec, assertLifetime_spec, register_spec,
-    registerType_spec, registerInstantiable_spec
-}                                                          from './registration';
+    registerType_spec, registerInstantiable_spec, registerProvider_spec
+} from './registration';
 import {clearState_spec, getDependencyNamesSpec, uuidSpec} from './util';
 import {
     buildProvider_spec, provideCached_spec, provideParent_spec,
@@ -25,6 +25,7 @@ describe('InjectJS', function () {
         describe('Register Type', registerType_spec);
         describe('Register Instantiable', registerInstantiable_spec);
         describe('Register', register_spec);
+        describe('Register Provider', registerProvider_spec);
     });
 
     describe('Utilities', function () {

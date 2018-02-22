@@ -38,6 +38,7 @@ export default function (descriptor, runtimeStores, parent, root) {
     _.each(descriptor.dependencies, function (dependency_name) {
         let dependency_spec;
         let dependencyDescriptor = getDescriptor(runtimeStores, dependency_name.split('::provider')[0]);
+
         if (dependencyDescriptor === undefined) {
             dependency_spec = adhocProvider(spec, dependency_name);
         } else {

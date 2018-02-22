@@ -1,46 +1,40 @@
-import autoStub      from '../_common/auto-stub';
+import testFaker      from '../_common/testable-js';
 import buildProvider from 'providers/build-provider';
 
 
-const stubber = autoStub();
-
-stubber.addStubDirective('provideTransientModule');
-stubber.addStubDirective('provideCachedModule');
-stubber.addStubDirective('provideProviderModule');
-stubber.addStubDirective('provideParentModule');
-stubber.addStubDirective('provideRootModule');
 
 export default function () {
-    beforeEach(stubber.stub);
-    afterEach(stubber.unstub);
+    beforeAll(function () {
+        testFaker.setActiveFakes(['provideTransient', 'provideCached', 'provideProvider', 'provideParent', 'provideRoot']);
+    });
+    beforeEach(testFaker.activateFakes);
+    afterEach(testFaker.restoreFakes);
 
     [
         ['transient', 'provideTransient'], ['singleton', 'provideCached'],
         ['parent', 'provideParent'], ['root', 'provideRoot']
     ].forEach(function ([when, what]) {
-        it(`should call ${what} when descriptor lifetime is ${when}`, function () {
+        it(`should call ${what} when descriptor lifetime is ${when}`, testFaker.harness(function (provider) {
             buildProvider({}, {lifetime: when});
 
-            expect(stubber.get(`${what}Module::default`))
-                .toHaveBeenCalledOnce();
-        });
+            expect(provider).toHaveBeenCalledOnce();
+        }, what));
     });
 
-    it('should call provideProvider when descriptor has no lifetime', function () {
+    it('should call provideProvider when descriptor has no lifetime', testFaker.harness(function (provider) {
         buildProvider({}, {});
 
-        expect(stubber.get('provideProviderModule::default'))
-            .toHaveBeenCalledOnce();
-    });
+        expect(provider).toHaveBeenCalledOnce();
+    }, 'provideProvider'));
 
-    it('should cache providers for named types', function () {
+    it('should cache providers for named types', testFaker.harness(function (provideRoot) {
         let store = {
             cache: {}
         };
 
-        stubber.get('provideRootModule::default').returns({name: 'test'});
+        provideRoot.returns({name: 'test'});
         buildProvider(store, {name: 'test', lifetime: 'root'});
 
         expect(store.cache.test).not.toBeUndefined();
-    });
+    }, 'provideRoot'));
 }

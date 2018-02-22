@@ -1,14 +1,17 @@
-import * as provideCachedModule from '../../src/providers/provide-cached';
 import provideRoot from '../../src/providers/provide-root';
-import sinon from 'sinon';
+import testFaker from '../_common/testable-js';
 
 
 export default function () {
+    beforeAll(function () {
+        testFaker.setActiveFakes(['provideCached']);
+    });
     let pcStub;
 
     beforeEach(function () {
-        pcStub = sinon.stub(provideCachedModule, 'default');
-        pcStub.returns({provider: sinon.stub()});
+        testFaker.activateFakes();
+        pcStub = testFaker.getFake('provideCached');
+        pcStub.returns({provider: testFaker.stub()});
     });
 
     afterEach(function () {

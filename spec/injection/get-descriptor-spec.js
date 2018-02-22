@@ -1,22 +1,20 @@
 import getDescriptor                     from '../../src/injection/get-descriptor';
-import * as buildAnonymousDescriptorModule from '../../src/injection/build-anonymous-descriptor';
-import sinon                               from 'sinon';
-
+import testFaker from '../_common/testable-js';
 
 export default function () {
-    let badStub;
+    beforeAll(function () {
+        testFaker.setActiveFakes(['buildAnonymousDescriptor']);
+    });
     let stores;
     beforeEach(function () {
-        badStub = sinon.stub(buildAnonymousDescriptorModule, 'default');
+        testFaker.activateFakes();
         stores = {
             providers: {},
             types: {},
             fakes: {}
         };
     });
-    afterEach(function () {
-        badStub.restore();
-    });
+    afterEach(testFaker.restoreFakes);
 
     it('should be able to return a provider descriptor', function () {
         stores.providers.test = 'test descriptor';
@@ -50,8 +48,8 @@ export default function () {
         stores.providers.test = 'test provider';
         expect(getDescriptor(stores)).toEqual({});
     });
-    it('should build an anonymous descriptor if not present in stores', function () {
+    it('should build an anonymous descriptor if not present in stores', testFaker.harness(function (badStub) {
         getDescriptor(stores, ['test', function () {}]);
         expect(badStub).toHaveBeenCalledOnce();
-    });
+    }, 'buildAnonymousDescriptor'));
 }

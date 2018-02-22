@@ -40,6 +40,7 @@
     "eslint": "^4.17.0",
     "imports-loader": "^0.7.1",
     "jasmine-core": "^2.99.1",
+    "jasmine-sinon": "^0.4.0",
     "karma": "~2.0.0",
     "karma-coverage": "^1.1.1",
     "karma-jasmine": "^1.1.0",
@@ -50,7 +51,7 @@
     "phantomjs-polyfill-array-from": "^1.0.1",
     "phantomjs-polyfill-object-assign": "0.0.2",
     "ramda": "^0.25.0",
-    "testable-js": "0.0.2",
+    "testable-js": "0.0.17",
     "testdouble": "^3.5.0",
     "webpack": "^3.11.0"
   },
