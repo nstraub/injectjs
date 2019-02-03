@@ -4,13 +4,16 @@ import {
     constantValueFactory, defaultFactory
 } from '../_common/data-structure-factory';
 
-import testFaker from '../_common/testable-js';
+import testFaker, {harnessedIt} from '../_common/testable-js';
 
 
 export default function () {
     let fn = function (a, b) {
         this.c = a.id + b.id;
     };
+
+    const hit = harnessedIt(it);
+
     beforeAll(function () {
         testFaker.setActiveFakes(['getUuid', 'assertCircularReferences', 'getDescriptor', 'buildProvider']);
         testFaker.addAction('getUuid', 'callThrough', 'callThrough');
@@ -21,7 +24,7 @@ export default function () {
     afterAll(testFaker.clearActions);
 
 
-    it('should build the appropriate specs for each dependency passed in descriptor', testFaker.harness(function (buildProvider) {
+    hit('should build the appropriate specs for each dependency passed in descriptor', function (buildProvider) {
         buildProvider.callsFake(()=> constantValueFactory.createSpec);
 
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
@@ -30,8 +33,9 @@ export default function () {
         expect(result.dependencies.length).toBe(2);
         expect(result.dependencies[0]).toEqual(constantValueFactory.createSpec());
         expect(result.dependencies[1]).toEqual(constantValueFactory.createSpec());
-    }, 'buildProvider'));
-    it('should set the parent and root on each spec it builds', testFaker.harness(function (buildProvider) {
+    }, 'buildProvider');
+
+    hit('should set the parent and root on each spec it builds', function (buildProvider) {
         buildProvider.callsFake((a, b) => (spec)=>spec);
 
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
@@ -44,9 +48,9 @@ export default function () {
 
         expect(result.dependencies[1].parent).toBe(result);
         expect(result.dependencies[1].root).toBe(result);
-    }, 'buildProvider'));
+    }, 'buildProvider');
 
-    it('should assert circular references', testFaker.harness(function (buildProviderModule, assertCircular, getDescriptor) {
+    hit('should assert circular references', function (buildProviderModule, assertCircular, getDescriptor) {
         let createDefaultDescriptor = (a, b) => defaultFactory.createDescriptor(b, ['a', 'b']);
         getDescriptor.onFirstCall().callsFake(createDefaultDescriptor);
         getDescriptor.onSecondCall().callsFake(createDefaultDescriptor);
@@ -57,5 +61,5 @@ export default function () {
         let descriptor = defaultFactory.createDescriptor(fn, ['a', 'b']);
         buildGraph(descriptor, buildRuntimeStores());
         expect(assertCircular).toHaveBeenCalledTwice();
-    }, 'buildProvider', 'assertCircularReferences', 'getDescriptor'));
+    }, 'buildProvider', 'assertCircularReferences', 'getDescriptor');
 };

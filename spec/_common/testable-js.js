@@ -11,8 +11,8 @@ import * as provideCachedModule            from 'providers/provide-cached';
 import * as provideProviderModule          from 'providers/provide-provider';
 import * as provideParentModule            from 'providers/provide-parent';
 import * as provideRootModule              from 'providers/provide-root';
-import * as registerInstantiableModule              from 'registration/register-instantiable';
-import * as registerModule              from 'registration/register';
+import * as registerInstantiableModule     from 'registration/register-instantiable';
+import * as registerModule                 from 'registration/register';
 import * as buildAnonymousDescriptorModule from '../../src/injection/build-anonymous-descriptor';
 
 
@@ -34,3 +34,9 @@ tester.registerStub('registerInstantiable', registerInstantiableModule, 'default
 tester.registerStub('register', registerModule, 'default');
 
 export default tester;
+
+export const harnessedIt = function (it) {
+    return function (expectation, testFn, ...dependencies) {
+        return it(expectation, tester.harness(testFn, ...dependencies));
+    };
+};

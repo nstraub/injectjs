@@ -45,6 +45,7 @@ module.exports = function (config) {
                         {
                             test: /\.js$/,
                             loader: 'babel-loader',
+                            options: { plugins: [['istanbul', {exclude: ['spec']}]] },
                             enforce: 'post'
                         }
                     ]

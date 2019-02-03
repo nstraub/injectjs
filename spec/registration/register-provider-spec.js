@@ -1,8 +1,10 @@
 import {registerMain, registerProvider} from '../../src/registration';
-import testFaker                        from '../_common/testable-js';
+import testFaker, {harnessedIt}         from '../_common/testable-js';
 
 
 export default function () {
+    const hit = harnessedIt(it);
+
     beforeAll(function () {
         testFaker.setActiveFakes(['register']);
     });
@@ -23,15 +25,15 @@ export default function () {
         expect(props.cache.test).toBeUndefined();
     });
 
-    it('should call register with passed name and provider function', testFaker.harness(function (register) {
+    hit('should call register with passed name and provider function', function (register) {
         registerProvider(props, 'test', 'testfn');
         expect(register).toHaveBeenCalledWith('test', 'testfn');
-    }, ['register']));
+    }, ['register']);
 
     describe('main provider', function () {
-        it('should register the main provider', testFaker.harness(function (register) {
+        hit('should register the main provider', function (register) {
             registerMain(props, 'testfn');
             expect(register).toHaveBeenCalledWith('main', 'testfn');
-        }, ['register']));
+        }, ['register']);
     });
 }

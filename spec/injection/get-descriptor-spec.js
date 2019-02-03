@@ -1,7 +1,9 @@
-import getDescriptor                     from '../../src/injection/get-descriptor';
-import testFaker from '../_common/testable-js';
+import getDescriptor            from '../../src/injection/get-descriptor';
+import testFaker, {harnessedIt} from '../_common/testable-js';
 
 export default function () {
+    const hit = harnessedIt(it);
+
     beforeAll(function () {
         testFaker.setActiveFakes(['buildAnonymousDescriptor']);
     });
@@ -48,8 +50,8 @@ export default function () {
         stores.providers.test = 'test provider';
         expect(getDescriptor(stores)).toEqual({});
     });
-    it('should build an anonymous descriptor if not present in stores', testFaker.harness(function (badStub) {
+    hit('should build an anonymous descriptor if not present in stores', function (badStub) {
         getDescriptor(stores, ['test', function () {}]);
         expect(badStub).toHaveBeenCalledOnce();
-    }, 'buildAnonymousDescriptor'));
+    }, 'buildAnonymousDescriptor');
 }

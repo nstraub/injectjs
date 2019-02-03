@@ -41,12 +41,10 @@ With that said, I expect to have a fully functional, fully tested, fully decoupl
 
 Until now, the only way to inject dependencies into JavaScript objects has been by manually instantiating them and passing them into the object's constructor, property or method. This creates a load of overhead and boilerplate "new keyword" code. Add to that the fact JavaScript is dynamically typed and you have no real way of knowing whether changing the signature of an object's constructor, property or method will cause an error in the rest of your code (unless, of course, you keep track of every place your recently changed object is used and how). You (usually) won't even get a runtime error since JavaScript doesn't complain at all when you pass a function more (or less) arguments than it has parameters. InjectJS aims to get rid of all this. It allows you to wire up your dependencies beforehand and handle instantiation of all your JS objects.
 
-### What about RequireJS?
+### What about RequireJS / ES6 imports / CommonJS / AMD?
 
-RequireJS is a wonderful modularization framework, but it is not a dependency injection framework. From my (admittedly limited) experience with RequireJS, what I understand it does is load javascript files as modules which can then be required from other modules. It does a wonderful job at solving the "everything must be global" problem that haunts JavaScript from it's beginnings. What RequireJS doesn't (and shouldn't!) do, is provide high level dependency injection and object lifetime management, and that's where InjectJS comes in
+These are all modularization solutions, not dependency injection solutions. They introduce a sorely needed feature into the language, namely, the ability to create modules and not have all your code live in the global namespace, which gets polluted fairly quickly. What they don't (and shouldn't!) do, is provide high level dependency injection and object lifetime management. That's where InjectJS comes in!
 
-
-> Note: InjectJS includes a shim to integrate into RequireJS, and in the near future I expect to use requireJS (along with Grunt) to modularize InjectJS's code into smaller, less complex packages (as opposed to the one large file it is now).
 
 # <a name="install"></a>Installation
 

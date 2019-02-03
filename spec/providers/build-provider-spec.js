@@ -1,9 +1,11 @@
-import testFaker      from '../_common/testable-js';
-import buildProvider from 'providers/build-provider';
+import testFaker, {harnessedIt} from '../_common/testable-js';
+import buildProvider            from 'providers/build-provider';
 
 
 
 export default function () {
+    const hit = harnessedIt(it);
+
     beforeAll(function () {
         testFaker.setActiveFakes(['provideTransient', 'provideCached', 'provideProvider', 'provideParent', 'provideRoot']);
     });
@@ -14,20 +16,20 @@ export default function () {
         ['transient', 'provideTransient'], ['singleton', 'provideCached'],
         ['parent', 'provideParent'], ['root', 'provideRoot']
     ].forEach(function ([when, what]) {
-        it(`should call ${what} when descriptor lifetime is ${when}`, testFaker.harness(function (provider) {
+        hit(`should call ${what} when descriptor lifetime is ${when}`, function (provider) {
             buildProvider({}, {lifetime: when});
 
             expect(provider).toHaveBeenCalledOnce();
-        }, what));
+        }, what);
     });
 
-    it('should call provideProvider when descriptor has no lifetime', testFaker.harness(function (provider) {
+    hit('should call provideProvider when descriptor has no lifetime', function (provider) {
         buildProvider({}, {});
 
         expect(provider).toHaveBeenCalledOnce();
-    }, 'provideProvider'));
+    }, 'provideProvider');
 
-    it('should cache providers for named types', testFaker.harness(function (provideRoot) {
+    hit('should cache providers for named types', function (provideRoot) {
         let store = {
             cache: {}
         };
@@ -36,5 +38,5 @@ export default function () {
         buildProvider(store, {name: 'test', lifetime: 'root'});
 
         expect(store.cache.test).not.toBeUndefined();
-    }, 'provideRoot'));
+    }, 'provideRoot');
 }
