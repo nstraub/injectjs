@@ -3,7 +3,6 @@ import {buildGraph, getDescriptor}                                  from './inje
 import {buildProvider}                                              from './providers';
 import {clearState}                                                 from './util';
 
-
 export function createInjector() {
     const curry = function (fn) {
         return function (arg1) {

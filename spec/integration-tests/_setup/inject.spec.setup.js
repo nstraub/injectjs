@@ -1,5 +1,5 @@
-import {createInjector} from '../../src/index';
-import {uuid}           from '../../src/util';
+import {createInjector} from '../../../src/index';
+import {uuid}           from '../../../src/util';
 
 
 const lifetimes = ['transient', 'root', 'state', 'singleton', 'parent'];

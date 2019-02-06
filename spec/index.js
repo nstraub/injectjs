@@ -17,8 +17,11 @@ import {
     assertCircularReferences_spec, buildAnonymousDespcriptor_spec, buildGraph_spec, getDescriptor_spec
 } from './injection';
 
+import integration_tests from './integration-tests';
+
 describe('InjectJS', function () {
     beforeAll(instanceOfMatcher);
+
     describe('Registration', function () {
         describe('Assert Lifetime', assertLifetime_spec);
         describe('Assertions', assertions_spec);
@@ -50,4 +53,7 @@ describe('InjectJS', function () {
         describe('Get Descriptor', getDescriptor_spec);
         describe('Assert Circular References', assertCircularReferences_spec);
     });
+
+    describe('Integration Tests', integration_tests);
+
 });

@@ -12,10 +12,9 @@ import {
     injection_inject_types_spec, injection_run_spec
 }                                                                             from './Injection';
 import 'jasmine-sinon';
-import instanceOfMatcher from '../spec/_common/instance-of-matcher'
-describe('injector', function () {
+import instanceOfMatcher from '../../spec/_common/instance-of-matcher'
+export default function () {
     beforeAll(instanceOfMatcher);
-
 
 
     describe('injection', function () {
@@ -48,4 +47,4 @@ describe('injector', function () {
     describe('caching', function () {
         describe('injection', caching_injection_spec);
     });
-});
+}

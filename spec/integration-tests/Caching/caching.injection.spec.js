@@ -1,6 +1,6 @@
 import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 import sinon from 'sinon';
-import * as buildProviderModule from '../../src/providers/build-provider'
+import * as buildProviderModule from '../../../src/providers/build-provider'
 
 
 let injector;
