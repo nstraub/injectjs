@@ -1,4 +1,4 @@
-import _      from 'lodash';
+import _each      from 'lodash/each';
 import {uuid} from '../util';
 
 import {assertCircularReferences, buildGraph, getDescriptor} from './index';
@@ -35,7 +35,7 @@ export default function (descriptor, runtimeStores, parent, root) {
         assertCircularReferences(spec, descriptor.dependencies, []);
     }
 
-    _.each(descriptor.dependencies, function (dependency_name) {
+    _each(descriptor.dependencies, function (dependency_name) {
         let dependency_spec;
         let dependencyDescriptor = getDescriptor(runtimeStores, dependency_name.split('::provider')[0]);
 

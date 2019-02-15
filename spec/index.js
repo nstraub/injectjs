@@ -54,6 +54,6 @@ describe('InjectJS', function () {
         describe('Assert Circular References', assertCircularReferences_spec);
     });
 
-    describe('Integration Tests', integration_tests);
+    xdescribe('Integration Tests', integration_tests);
 
 });

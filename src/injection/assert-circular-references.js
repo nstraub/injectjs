@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _isArray from 'lodash/isArray';
 
 
 export default function _assert_circular_references(spec, dependencies, path) {
@@ -11,7 +11,7 @@ export default function _assert_circular_references(spec, dependencies, path) {
     path.unshift(name);
 
     let provider = parent.descriptor.provider;
-    if (_.isArray(provider)) {
+    if (_isArray(provider)) {
         provider = provider[provider.length - 1];
     }
 
