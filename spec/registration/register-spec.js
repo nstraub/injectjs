@@ -30,7 +30,7 @@ export default function () {
         stubs.forEach(function (stub) {
             stub.restore();
         });
-
+        stubs = [];
         newDescriptor.dependencies = undefined;
         newDescriptor.type = typeFn;
     });
