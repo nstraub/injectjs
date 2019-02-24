@@ -16,8 +16,6 @@ module.exports = function (config) {
 
             // list of files / patterns to load in the browser
             files: [
-                './node_modules/phantomjs-polyfill-array-from/array-from-polyfill.js',
-                './node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
                 'spec/index.js'
             ],
 
@@ -91,7 +89,7 @@ module.exports = function (config) {
             // start these browsers
             // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
             // browsers: ['Chrome'],
-            browsers: ['PhantomJS'],
+            browsers: ['ChromeHeadless'],
 
 
             // Continuous Integration mode

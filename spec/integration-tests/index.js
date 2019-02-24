@@ -1,5 +1,4 @@
 import "babel-polyfill";
-require('phantomjs-polyfill-array-from');
 import setup                                                                  from './_setup/inject.spec.setup';
 
 import {
