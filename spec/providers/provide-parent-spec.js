@@ -3,8 +3,9 @@ import testFaker from '../_common/testable-js';
 
 
 export default function () {
-    testFaker.setActiveFakes(['provideCached']);
     let pcStub;
+
+    beforeAll(() => testFaker.setActiveFakes(['provideCached']));
 
     beforeEach(function () {
         testFaker.activateFakes();
@@ -12,9 +13,7 @@ export default function () {
         pcStub.returns({provider: testFaker.stub()});
     });
 
-    afterEach(function () {
-        pcStub.restore();
-    });
+    afterEach(testFaker.restoreFakes);
 
     it('should return cache provider for topmost_parent.children', function () {
         provideParent({name: 'test'},{})({parent:{children:{test: {}}}}).provider();
@@ -27,7 +26,7 @@ export default function () {
     });
     it('should use an empty object if no parent provided', function () {
         let stores = {};
-        provideParent({})(stores).provider();
+        provideParent({}, {})(stores).provider();
 
         expect(stores.children).toBeUndefined();
     });

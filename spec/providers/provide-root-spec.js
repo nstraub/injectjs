@@ -14,9 +14,7 @@ export default function () {
         pcStub.returns({provider: testFaker.stub()});
     });
 
-    afterEach(function () {
-        pcStub.restore();
-    });
+    afterEach(testFaker.restoreFakes);
 
     it('should return cache provider for root.roots', function () {
         provideRoot({},{},{})({root: {roots:{}}}).provider();

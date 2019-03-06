@@ -27,7 +27,7 @@ module.exports = function (config) {
             // preprocess matching files before serving them to the browser
             // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
             preprocessors: {
-                'spec/index.js': ['webpack']
+                'spec/index.js': ['webpack', 'sourcemap']
             },
             webpack: {
                 resolve: {
@@ -38,7 +38,6 @@ module.exports = function (config) {
                 },
                 module: {
                     rules: [
-                        { test: /sinon.*\.js$/,   loader: 'imports-loader?define=>false,require=>false'  },
                         {
                             test: /\.js$/,
                             loader: 'babel-loader',

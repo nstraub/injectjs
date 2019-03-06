@@ -26,7 +26,7 @@ export default function () {
     });
 
     afterEach(function () {
-        buildGraphStub.restore();
+        testFaker.restoreFakes();
         transientDescriptor.provider = undefined;
     });
 
