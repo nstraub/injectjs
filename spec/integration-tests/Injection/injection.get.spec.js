@@ -2,7 +2,7 @@ import {setup, lifetimes, get_adhoc_dependency_tests} from '../_setup';
 
 let injector;
 export default function() {
-    beforeAll(function() {
+    beforeEach(function() {
         injector = setup.reset_injector();
         return setup.assign_context_dependent_types();
     });
@@ -27,7 +27,7 @@ export default function() {
     }
 
     return describe('providers', function() {
-        beforeAll(() => setup.assign_base_types());
+        beforeEach(() => setup.assign_base_types());
         it('returns the type`s provider when ::provider suffix is passed', function() {
             const provider = injector.get('base_transient_type::provider');
             return expect(provider()).toBeInstanceOf(injector.getType('base_transient_type'));

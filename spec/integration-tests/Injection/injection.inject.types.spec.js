@@ -40,7 +40,7 @@ export default function () {
     });
 
     describe('passive providers', function () {
-        beforeAll(function () {
+        beforeEach(function () {
             injector = setup.reset_injector();
             return setup.assign_passive_types();
         });

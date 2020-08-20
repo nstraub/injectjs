@@ -14,14 +14,14 @@ export default function () {
 
     const hit = harnessedIt(it);
 
-    beforeAll(function () {
+    beforeEach(function () {
         testFaker.setActiveFakes(['getUuid', 'assertCircularReferences', 'getDescriptor', 'buildProvider']);
         testFaker.addAction('getUuid', 'callThrough', 'callThrough');
         testFaker.addAction('getDescriptor', 'createConstantDescriptor', 'callsFake', constantValueFactory.createDescriptor);
     });
     beforeEach(testFaker.activateFakes);
     afterEach(testFaker.restoreFakes);
-    afterAll(testFaker.clearActions);
+    afterEach(testFaker.clearActions);
 
 
     hit('should build the appropriate specs for each dependency passed in descriptor', function (buildProvider) {
